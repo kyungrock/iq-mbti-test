@@ -77,7 +77,6 @@
   function selectLevel(levelId) {
     selectedLevel = levelId;
     levelConfig = AGE_LEVELS[levelId];
-    questions = QUESTION_BANK[levelId];
     totalTime = levelConfig.timeLimit * 60;
 
     els.ageLevels.querySelectorAll('.age-level-card').forEach(card => {
@@ -238,6 +237,8 @@
 
   function startTest() {
     if (!selectedLevel) return;
+
+    questions = buildIqTest(selectedLevel, levelConfig.questionCount);
 
     state = {
       currentIndex: 0,

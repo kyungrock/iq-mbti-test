@@ -79,10 +79,10 @@ const LIKERT_LABELS = [
 const PHASE2_COUNT = 24;
 
 function getPhase2Questions(mbtiType) {
-  const traits = TYPE_TRAITS[mbtiType];
-  if (!traits) return [];
-  return traits.slice(0, PHASE2_COUNT).map((text, i) => ({
-    id: `${mbtiType}-${i}`,
+  const pool = getPhase2TraitPool(mbtiType);
+  if (!pool.length) return [];
+  return pickFromPool(pool, PHASE2_COUNT).map((text, i) => ({
+    id: `${mbtiType}-${i}-${Math.random().toString(36).slice(2, 7)}`,
     text,
     type: mbtiType
   }));

@@ -47,7 +47,8 @@
 
   let state = {
     p1Index: 0,
-    p1Answers: new Array(PHASE1_QUESTIONS.length).fill(null),
+    p1Answers: [],
+    p1Questions: [],
     p2Index: 0,
     p2Answers: [],
     mbtiType: null,
@@ -73,12 +74,21 @@
     });
   }
 
+  function startPhase1() {
+    state.p1Questions = buildPhase1Questions();
+    state.p1Answers = new Array(state.p1Questions.length).fill(null);
+    state.p1Index = 0;
+    showScreen('phase1');
+    renderPhase1();
+  }
+
   function renderPhase1() {
-    const q = PHASE1_QUESTIONS[state.p1Index];
-    const progress = ((state.p1Index + 1) / PHASE1_QUESTIONS.length) * 100;
+    const total = state.p1Questions.length;
+    const q = state.p1Questions[state.p1Index];
+    const progress = ((state.p1Index + 1) / total) * 100;
 
     els.p1ProgressFill.style.width = `${progress}%`;
-    els.p1ProgressText.textContent = `${state.p1Index + 1} / ${PHASE1_QUESTIONS.length}`;
+    els.p1ProgressText.textContent = `${state.p1Index + 1} / ${total}`;
     els.p1QuestionText.textContent = q.text;
 
     buildLikert(els.p1Likert, state.p1Answers[state.p1Index], val => {
@@ -87,11 +97,11 @@
     });
 
     els.p1Prev.disabled = state.p1Index === 0;
-    els.p1Next.textContent = state.p1Index === PHASE1_QUESTIONS.length - 1 ? '1차 완료' : '다음';
+    els.p1Next.textContent = state.p1Index === total - 1 ? '1차 완료' : '다음';
   }
 
   function finishPhase1() {
-    state.phase1Result = scorePhase1(state.p1Answers);
+    state.phase1Result = scorePhase1(state.p1Answers, state.p1Questions);
     state.mbtiType = state.phase1Result.mbtiType;
     const info = MBTI_TYPES[state.mbtiType];
 
@@ -135,7 +145,9 @@
   }
 
   function showResults() {
-    const report = buildMbtiReport(state.p1Answers, state.p2Answers, state.mbtiType);
+    const report = buildMbtiReport(
+      state.p1Answers, state.p2Answers, state.mbtiType, state.p1Questions
+    );
     const info = report.typeInfo;
     const groupColor = GROUP_COLORS[info.group] || 'var(--primary)';
 
@@ -151,7 +163,7 @@
     els.fitLevel.textContent = report.phase2.fitLevel.label;
     els.fitDesc.textContent = report.phase2.fitLevel.desc;
 
-    els.statPhase1.textContent = PHASE1_QUESTIONS.length;
+    els.statPhase1.textContent = state.p1Questions.length;
     els.statPhase2.textContent = state.phase2Questions.length;
     els.statClarity.textContent = `${report.phase1.avgClarity}%`;
     els.statTotal.textContent = report.totalQuestions;
@@ -224,7 +236,8 @@
   function reset() {
     state = {
       p1Index: 0,
-      p1Answers: new Array(PHASE1_QUESTIONS.length).fill(null),
+      p1Answers: [],
+      p1Questions: [],
       p2Index: 0,
       p2Answers: [],
       mbtiType: null,
@@ -234,17 +247,14 @@
     showScreen('start');
   }
 
-  els.btnStart.addEventListener('click', () => {
-    showScreen('phase1');
-    renderPhase1();
-  });
+  els.btnStart.addEventListener('click', startPhase1);
 
   els.p1Prev.addEventListener('click', () => {
     if (state.p1Index > 0) { state.p1Index--; renderPhase1(); }
   });
 
   els.p1Next.addEventListener('click', () => {
-    if (state.p1Index < PHASE1_QUESTIONS.length - 1) {
+    if (state.p1Index < state.p1Questions.length - 1) {
       state.p1Index++;
       renderPhase1();
     } else {

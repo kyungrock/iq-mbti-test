@@ -1,10 +1,10 @@
-function scorePhase1(answers) {
+function scorePhase1(answers, questions) {
   const scores = {
     E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0
   };
   const counts = { EI: 0, SN: 0, TF: 0, JP: 0 };
 
-  PHASE1_QUESTIONS.forEach((q, i) => {
+  questions.forEach((q, i) => {
     const val = answers[i];
     if (val == null) return;
 
@@ -105,15 +105,15 @@ function getSecondaryTypes(dimensions) {
   return [...types].filter(t => t !== mainType).slice(0, 3);
 }
 
-function buildMbtiReport(phase1Answers, phase2Answers, mbtiType) {
-  const phase1 = scorePhase1(phase1Answers);
+function buildMbtiReport(phase1Answers, phase2Answers, mbtiType, phase1Questions) {
+  const phase1 = scorePhase1(phase1Answers, phase1Questions);
   const type = mbtiType || phase1.mbtiType;
   const typeInfo = MBTI_TYPES[type];
   const phase2Questions = getPhase2Questions(type);
   const phase2 = scorePhase2(phase2Answers, phase2Questions);
   const secondary = getSecondaryTypes(phase1.dimensions);
 
-  const summary = buildSummary(type, typeInfo, phase1, phase2);
+  const summary = buildSummary(type, typeInfo, phase1, phase2, phase1Questions.length);
   const dimensionAnalysis = buildDimensionAnalysis(phase1.dimensions);
   const cognitiveStack = getCognitiveStack(type);
 
@@ -126,14 +126,14 @@ function buildMbtiReport(phase1Answers, phase2Answers, mbtiType) {
     summary,
     dimensionAnalysis,
     cognitiveStack,
-    totalQuestions: PHASE1_QUESTIONS.length + phase2Questions.length
+    totalQuestions: phase1Questions.length + phase2Questions.length
   };
 }
 
-function buildSummary(type, info, phase1, phase2) {
-  return `1차 검사(56문항) 결과 <strong>${type} (${info.name})</strong> 유형이 도출되었습니다. ` +
+function buildSummary(type, info, phase1, phase2, phase1Count) {
+  return `1차 검사(${phase1Count}문항) 결과 <strong>${type} (${info.name})</strong> 유형이 도출되었습니다. ` +
     `4가지 차원의 평균 명확도는 <strong>${phase1.avgClarity}%</strong>입니다. ` +
-    `2차 적합도 검사(24문항) 결과, 해당 유형과의 일치도는 <strong>${phase2.matchPercent}%</strong>로 ` +
+    `2차 적합도 검사(${phase2.answered}문항) 결과, 해당 유형과의 일치도는 <strong>${phase2.matchPercent}%</strong>로 ` +
     `「${phase2.fitLevel.label}」 수준입니다.`;
 }
 
