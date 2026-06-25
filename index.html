@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IQ 테스트 | 연령별 지능지수 측정</title>
+  <meta name="description" content="유치원부터 성인까지 연령별 맞춤 IQ 테스트. CHC 이론 기반 인지 영역 분석 리포트 제공">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="bg-pattern" aria-hidden="true"></div>
+
+  <header class="site-header site-header-nav">
+    <a href="index.html" class="logo">
+      <span class="logo-icon">🧠</span>
+      <span class="logo-text">IQ Test</span>
+    </a>
+    <nav class="site-nav">
+      <a href="index.html" class="active">IQ 테스트</a>
+      <a href="mbti.html">MBTI 검사</a>
+    </nav>
+  </header>
+
+  <main id="app">
+    <!-- 시작 화면 -->
+    <section id="screen-start" class="screen active">
+      <div class="card hero-card">
+        <div class="hero-badge">연령별 맞춤 · CHC 인지 분석</div>
+        <h1>연령에 맞는<br>IQ 테스트</h1>
+        <p class="hero-desc">
+          유치원부터 성인까지 <strong>5단계 연령 규준</strong>으로 측정합니다.
+          CHC(Cattell-Horn-Carroll) 이론 기반 4대 인지 영역 분석 리포트를 제공합니다.
+        </p>
+        <ul class="feature-list">
+          <li>
+            <span class="feature-icon">👶</span>
+            <span>연령별 전용 문항 (각 15문항)</span>
+          </li>
+          <li>
+            <span class="feature-icon">📊</span>
+            <span>Wechsler 기준 IQ 등급 분류</span>
+          </li>
+          <li>
+            <span class="feature-icon">🔬</span>
+            <span>강점·약점·학습 권장 분석</span>
+          </li>
+        </ul>
+
+        <div class="age-select-section">
+          <h2 class="age-select-title">연령대를 선택하세요</h2>
+          <div id="age-levels" class="age-level-grid" role="radiogroup" aria-label="연령대 선택"></div>
+        </div>
+
+        <button id="btn-start" class="btn btn-primary btn-lg" disabled>테스트 시작</button>
+        <p class="disclaimer">
+          ※ 본 테스트는 오락 및 자기 이해 목적이며, Wechsler·K-WISC 등 공인 검사를 대체하지 않습니다.
+          정확한 평가는 전문 심리검사 기관을 이용해 주세요.
+        </p>
+      </div>
+    </section>
+
+    <!-- 테스트 화면 -->
+    <section id="screen-test" class="screen">
+      <div class="test-header">
+        <div class="level-chip" id="test-level-chip"></div>
+        <div class="progress-wrap">
+          <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+          </div>
+          <span id="progress-text" class="progress-text">1 / 15</span>
+        </div>
+        <div id="timer" class="timer" aria-live="polite">
+          <span class="timer-icon">⏱</span>
+          <span id="timer-value">20:00</span>
+        </div>
+      </div>
+
+      <div class="card question-card">
+        <span id="category-badge" class="category-badge">논리</span>
+        <h2 id="question-text" class="question-text"></h2>
+        <div id="question-visual" class="question-visual" hidden></div>
+        <div id="options" class="options" role="radiogroup" aria-labelledby="question-text"></div>
+      </div>
+
+      <div class="test-nav">
+        <button id="btn-prev" class="btn btn-ghost" disabled>이전</button>
+        <button id="btn-next" class="btn btn-primary">다음</button>
+      </div>
+    </section>
+
+    <!-- 결과 화면 -->
+    <section id="screen-result" class="screen">
+      <div class="card result-card">
+        <div class="result-age-badge" id="result-age-badge"></div>
+
+        <div class="result-header">
+          <p class="result-label">추정 IQ <span class="result-norm">(연령 규준)</span></p>
+          <div id="iq-score" class="iq-score">—</div>
+          <p id="iq-level" class="iq-level"></p>
+          <p id="iq-classification-desc" class="iq-classification-desc"></p>
+        </div>
+
+        <div class="result-stats">
+          <div class="stat">
+            <span class="stat-value" id="stat-correct">0</span>
+            <span class="stat-label">정답</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="stat-total">15</span>
+            <span class="stat-label">총 문항</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="stat-time">—</span>
+            <span class="stat-label">소요 시간</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="stat-percentile">—</span>
+            <span class="stat-label">백분위</span>
+          </div>
+        </div>
+
+        <div class="analysis-section">
+          <h3>종합 분석</h3>
+          <p id="result-summary" class="analysis-text"></p>
+        </div>
+
+        <div class="analysis-section">
+          <h3>인지 영역 프로필 (CHC)</h3>
+          <div id="domain-bars"></div>
+          <div id="cognitive-profile" class="cognitive-profile"></div>
+        </div>
+
+        <div class="category-breakdown">
+          <h3>세부 영역별 성적</h3>
+          <div id="category-bars"></div>
+        </div>
+
+        <div class="analysis-grid">
+          <div class="analysis-box strength-box">
+            <h4>💪 강점 영역</h4>
+            <p id="strength-text"></p>
+          </div>
+          <div class="analysis-box weakness-box">
+            <h4>📌 보완 영역</h4>
+            <p id="weakness-text"></p>
+          </div>
+        </div>
+
+        <div class="analysis-section">
+          <h3>연령대 비교 해석</h3>
+          <p id="comparison-text" class="analysis-text"></p>
+        </div>
+
+        <div class="analysis-section recommendations">
+          <h3>맞춤 학습 권장</h3>
+          <ul id="recommendations-list" class="recommendations-list"></ul>
+        </div>
+
+        <div class="result-actions">
+          <button id="btn-retry" class="btn btn-primary">다시 테스트</button>
+          <button id="btn-share" class="btn btn-ghost">결과 공유</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 IQ Test · CHC 이론 기반 자기 이해용 테스트</p>
+  </footer>
+
+  <script src="js/questions.js"></script>
+  <script src="js/analysis.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MBTI 검사 | 2단계 성격유형 분석</title>
+  <meta name="description" content="56문항 MBTI 1차 검사 + 24문항 유형 적합도 2차 검사. 총 80문항 전문 분석">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/mbti.css">
+</head>
+<body>
+  <div class="bg-pattern mbti-bg" aria-hidden="true"></div>
+
+  <header class="site-header site-header-nav">
+    <a href="index.html" class="logo">
+      <span class="logo-icon">🧠</span>
+      <span class="logo-text">IQ Test</span>
+    </a>
+    <nav class="site-nav">
+      <a href="index.html">IQ 테스트</a>
+      <a href="mbti.html" class="active">MBTI 검사</a>
+    </nav>
+  </header>
+
+  <main id="app">
+    <!-- 시작 -->
+    <section id="screen-start" class="screen active">
+      <div class="card hero-card">
+        <div class="hero-badge mbti-badge">2단계 · 총 80문항</div>
+        <h1>MBTI<br>성격유형 검사</h1>
+        <p class="hero-desc">
+          <strong>1차 56문항</strong>으로 16가지 유형을 판별하고,
+          <strong>2차 24문항</strong>으로 결과 유형이 얼마나 맞는지 <strong>적합도 %</strong>를 측정합니다.
+        </p>
+        <ul class="feature-list">
+          <li><span class="feature-icon">①</span><span>1차: E/I · S/N · T/F · J/P 4차원 분석</span></li>
+          <li><span class="feature-icon">②</span><span>2차: 결과 유형 특성 적합도 검증</span></li>
+          <li><span class="feature-icon">📊</span><span>인지기능 스택 · 차원별 상세 리포트</span></li>
+        </ul>
+        <button id="btn-start" class="btn btn-primary btn-lg mbti-btn">1차 검사 시작</button>
+        <p class="disclaimer">※ 본 검사는 자기 이해 목적이며, 공인 MBTI® 검사를 대체하지 않습니다. 약 20~25분 소요됩니다.</p>
+      </div>
+    </section>
+
+    <!-- 1차 검사 -->
+    <section id="screen-phase1" class="screen">
+      <div class="test-header">
+        <div class="phase-chip">1차 검사 · 유형 판별</div>
+        <div class="progress-wrap">
+          <div class="progress-bar"><div id="p1-progress-fill" class="progress-fill mbti-fill"></div></div>
+          <span id="p1-progress-text" class="progress-text">1 / 56</span>
+        </div>
+      </div>
+      <div class="card question-card">
+        <p class="phase-instruction">나에게 해당하는 정도를 선택하세요</p>
+        <h2 id="p1-question-text" class="question-text"></h2>
+        <div id="p1-likert" class="likert-scale"></div>
+      </div>
+      <div class="test-nav">
+        <button id="p1-prev" class="btn btn-ghost" disabled>이전</button>
+        <button id="p1-next" class="btn btn-primary mbti-btn">다음</button>
+      </div>
+    </section>
+
+    <!-- 1차 완료 → 2차 안내 -->
+    <section id="screen-bridge" class="screen">
+      <div class="card hero-card bridge-card">
+        <p class="bridge-label">1차 검사 완료</p>
+        <div id="bridge-type" class="bridge-type">INTJ</div>
+        <p id="bridge-type-name" class="bridge-type-name">전략가</p>
+        <p id="bridge-desc" class="bridge-desc"></p>
+        <div class="bridge-dims" id="bridge-dims"></div>
+        <p class="bridge-next">
+          이제 <strong>2차 적합도 검사</strong>를 진행합니다.<br>
+          결과 유형의 특성 24가지가 나에게 얼마나 해당되는지 확인합니다.
+        </p>
+        <button id="btn-phase2" class="btn btn-primary btn-lg mbti-btn">2차 검사 시작 (24문항)</button>
+      </div>
+    </section>
+
+    <!-- 2차 검사 -->
+    <section id="screen-phase2" class="screen">
+      <div class="test-header">
+        <div class="phase-chip phase-chip-2">2차 검사 · 유형 적합도</div>
+        <div class="progress-wrap">
+          <div class="progress-bar"><div id="p2-progress-fill" class="progress-fill mbti-fill"></div></div>
+          <span id="p2-progress-text" class="progress-text">1 / 24</span>
+        </div>
+      </div>
+      <div class="card question-card">
+        <div class="verify-type-tag" id="p2-type-tag">INTJ</div>
+        <p class="phase-instruction">아래 문장이 나에게 얼마나 해당되나요?</p>
+        <h2 id="p2-question-text" class="question-text"></h2>
+        <div id="p2-likert" class="likert-scale"></div>
+      </div>
+      <div class="test-nav">
+        <button id="p2-prev" class="btn btn-ghost" disabled>이전</button>
+        <button id="p2-next" class="btn btn-primary mbti-btn">다음</button>
+      </div>
+    </section>
+
+    <!-- 최종 결과 -->
+    <section id="screen-result" class="screen">
+      <div class="card result-card mbti-result">
+        <div id="result-type-header" class="mbti-type-header"></div>
+
+        <div class="fit-score-section">
+          <p class="result-label">유형 적합도</p>
+          <div id="fit-percent" class="fit-percent">—%</div>
+          <p id="fit-level" class="fit-level"></p>
+          <p id="fit-desc" class="fit-desc"></p>
+        </div>
+
+        <div class="result-stats">
+          <div class="stat"><span class="stat-value" id="stat-phase1">56</span><span class="stat-label">1차 문항</span></div>
+          <div class="stat"><span class="stat-value" id="stat-phase2">24</span><span class="stat-label">2차 문항</span></div>
+          <div class="stat"><span class="stat-value" id="stat-clarity">—</span><span class="stat-label">차원 명확도</span></div>
+          <div class="stat"><span class="stat-value" id="stat-total">80</span><span class="stat-label">총 문항</span></div>
+        </div>
+
+        <div class="analysis-section">
+          <h3>종합 분석</h3>
+          <p id="result-summary" class="analysis-text"></p>
+        </div>
+
+        <div class="analysis-section">
+          <h3>4차원 프로필</h3>
+          <div id="dimension-bars"></div>
+        </div>
+
+        <div class="analysis-section">
+          <h3>인지 기능 스택</h3>
+          <div id="cognitive-stack" class="cognitive-stack"></div>
+        </div>
+
+        <div class="analysis-section" id="secondary-section" hidden>
+          <h3>경계형 가능 유형</h3>
+          <p id="secondary-types" class="analysis-text"></p>
+        </div>
+
+        <div class="analysis-section">
+          <h3>2차 적합도 상세 (유형 특성별)</h3>
+          <div id="fit-breakdown" class="fit-breakdown"></div>
+        </div>
+
+        <div class="result-actions">
+          <button id="btn-retry" class="btn btn-primary mbti-btn">처음부터 다시</button>
+          <button id="btn-share" class="btn btn-ghost">결과 공유</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 Personality Test · MBTI는 자기 이해를 위한 참고 도구입니다</p>
+  </footer>
+
+  <script src="js/mbti-types.js"></script>
+  <script src="js/mbti-questions.js"></script>
+  <script src="js/mbti-analysis.js"></script>
+  <script src="js/mbti-app.js"></script>
+</body>
+</html>
