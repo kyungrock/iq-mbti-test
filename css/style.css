@@ -797,7 +797,32 @@ body {
   padding: 2rem 1.5rem;
   font-size: 0.8rem;
   color: var(--text-muted);
-  opacity: 0.6;
+  opacity: 0.85;
+}
+
+.site-footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+.site-footer-nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.site-footer-nav a:hover {
+  color: var(--primary);
+}
+
+.site-footer-desc {
+  max-width: 36rem;
+  margin: 0 auto 0.5rem;
+  line-height: 1.5;
+  font-size: 0.78rem;
 }
 
 @media (max-width: 520px) {

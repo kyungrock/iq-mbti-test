@@ -4,21 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <title>상식퀴즈 | 클릭해서 정답 확인</title>
-  <meta name="description" content="나라 수도, 동물, 과학, 역사 등 다양한 상식퀴즈. 클릭하면 정답이 나옵니다.">
+  <title>상식 퀴즈 무료 | 200문항 신조어 MBTI 밸런스 게임</title>
+  <meta name="description" content="무료 상식 퀴즈 200문항. 신조어·줄임말, 연애 MBTI, 밸런스 게임, 나라 수도·과학·자연생물 등 21종 4지선다. 친구와 함께 풀어보세요.">
+  <meta name="keywords" content="상식 퀴즈, 상식퀴즈, 무료 퀴즈, 신조어 퀴즈, 밸런스 게임, MBTI 연애, 4지선다 퀴즈, 상식 테스트">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://kyungrock.github.io/iq-mbti-test/quiz.html">
+  <meta property="og:site_name" content="InsightIQ">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="상식 퀴즈 무료 | 200문항 InsightIQ">
+  <meta property="og:description" content="신조어, MBTI 연애, 밸런스 게임, 종합 상식 200문항 무료 퀴즈.">
+  <meta property="og:url" content="https://kyungrock.github.io/iq-mbti-test/quiz.html">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="상식 퀴즈 무료 | InsightIQ">
+  <meta name="twitter:description" content="200문항 상식 퀴즈 — 신조어·MBTI·밸런스·종합 상식.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css?v=6">
-  <link rel="stylesheet" href="css/quiz.css?v=2">
+  <link rel="stylesheet" href="css/quiz.css?v=7">
 </head>
 <body>
   <div class="bg-pattern quiz-bg" aria-hidden="true"></div>
 
   <header class="site-header site-header-nav">
-    <a href="quiz.html" class="logo">
-      <span class="logo-icon">💡</span>
-      <span class="logo-text">상식퀴즈</span>
+    <a href="index.html" class="logo">
+      <span class="logo-icon">🧠</span>
+      <span class="logo-text">InsightIQ</span>
     </a>
     <nav class="site-nav">
       <a href="index.html">InsightIQ</a>
@@ -29,23 +41,21 @@
   </header>
 
   <main id="app">
-    <!-- 카테고리 선택 -->
     <section id="screen-categories" class="screen active">
       <div class="card hero-card">
-        <div class="hero-badge quiz-badge">클릭 퀴즈 · 22종 · 500+ 문항</div>
-        <h1>상식퀴즈</h1>
+        <div class="hero-badge quiz-badge" id="quiz-hero-badge">4지선다 퀴즈 · 20종</div>
+        <h1>무료 상식 퀴즈</h1>
         <p class="hero-desc">
-          <strong>신조어·일상상식·연애 MBTI·밸런스 게임</strong>까지!
-          질문을 <strong>클릭</strong>하면 정답(또는 토론 포인트)이 나옵니다.
+          모든 카테고리 <strong>200문항</strong> 챌린지.
+          <strong>🎯 종합 상식 200</strong>은 전 분야 랜덤, 신조어·MBTI·밸런스도 200문항입니다.
         </p>
         <p class="hero-desc" style="font-size:0.9rem;margin-top:0.5rem;">
-          예) <strong>나라 수도</strong> → 「대한민국」→「서울」 · <strong>신조어</strong> → 「분좋카」→「분위기 좋은 카페」
+          예) 「분좋카의 뜻은?」 → ① 분위기 좋은 카페 … 클릭하면 ✅/❌
         </p>
         <div id="category-grid"></div>
       </div>
     </section>
 
-    <!-- 플레이 -->
     <section id="screen-play" class="screen">
       <div class="card">
         <div class="quiz-play-header">
@@ -57,36 +67,44 @@
           <span id="play-progress" class="quiz-progress-text">1 / 50</span>
         </div>
 
-        <div class="quiz-score-bar">
-          <span>학습 <strong id="stat-learned">0</strong></span>
+        <div id="quiz-score-bar" class="quiz-score-bar">
+          <span>정답 <strong id="stat-correct">0</strong></span>
+          <span>오답 <strong id="stat-wrong">0</strong></span>
           <span>남은 문제 <strong id="stat-remaining">0</strong></span>
         </div>
 
-        <div class="quiz-card-area">
-          <button id="quiz-card" type="button" class="quiz-flip-card" aria-live="polite">
-            <span id="card-label" class="card-label">나라</span>
-            <span id="card-text" class="card-text">대한민국</span>
-            <span id="card-hint" class="card-hint">클릭하면 정답이 나옵니다</span>
-          </button>
+        <div class="quiz-mc-area">
+          <p class="quiz-q-label">문제</p>
+          <h2 id="question-text" class="quiz-question-text"></h2>
+          <p id="quiz-options-label" class="quiz-options-label">보기 — 하나를 선택하세요</p>
+          <div id="quiz-options" class="quiz-options" role="radiogroup" aria-labelledby="question-text"></div>
+          <p id="quiz-feedback" class="quiz-feedback" hidden aria-live="polite"></p>
         </div>
 
         <div class="quiz-play-nav">
           <button id="btn-prev" class="btn btn-ghost" type="button">이전</button>
           <button id="btn-shuffle" class="btn btn-ghost" type="button">🔀 섞기</button>
-          <button id="btn-next" class="btn btn-primary" type="button">다음</button>
+          <button id="btn-next" class="btn btn-primary" type="button" disabled>다음</button>
         </div>
       </div>
     </section>
 
-    <!-- 완료 -->
     <section id="screen-done" class="screen">
       <div class="card quiz-done-card">
-        <h2>🎉 한 바퀴 완료!</h2>
+        <h2>🎉 퀴즈 완료!</h2>
         <p id="done-message" class="hero-desc"></p>
         <div class="quiz-done-stats">
           <div class="quiz-done-stat">
+            <div class="value" id="done-correct">0</div>
+            <div class="label">정답</div>
+          </div>
+          <div class="quiz-done-stat">
             <div class="value" id="done-total">0</div>
-            <div class="label">학습 문항</div>
+            <div class="label">총 문항</div>
+          </div>
+          <div class="quiz-done-stat">
+            <div class="value" id="done-percent">0%</div>
+            <div class="label">정답률</div>
           </div>
         </div>
         <div class="result-actions">
@@ -98,11 +116,21 @@
   </main>
 
   <footer class="site-footer">
-    <p>© 2026 상식퀴즈 · 클릭해서 배우는 상식 게임</p>
+    <nav class="site-footer-nav" aria-label="InsightIQ 메뉴">
+      <a href="index.html">IQ 테스트</a>
+      <a href="quiz.html">상식 퀴즈</a>
+      <a href="mbti.html">MBTI 검사</a>
+      <a href="aca.html">진행행렬 검사</a>
+    </nav>
+    <p class="site-footer-desc">InsightIQ 상식 퀴즈 — 신조어, MBTI 연애, 밸런스 게임, 종합 200문항</p>
+    <p>© 2026 InsightIQ</p>
   </footer>
 
   <script src="js/shuffle.js?v=1"></script>
-  <script src="js/quiz-data.js?v=2"></script>
-  <script src="js/quiz-app.js?v=2"></script>
+  <script src="js/quiz-data.js?v=6"></script>
+  <script src="js/quiz-data-extra.js?v=3"></script>
+  <script src="js/mbti-types.js"></script>
+  <script src="js/quiz-mc.js?v=8"></script>
+  <script src="js/quiz-app.js?v=10"></script>
 </body>
 </html>
