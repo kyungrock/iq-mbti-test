@@ -1,7 +1,7 @@
 // InsightIQ 연령별 검사 설정
 // ※ 공인 임상 지능검사가 아닌 자기 이해용 온라인 테스트
 
-const WECHSLER_LEVELS = {
+const INSIGHTIQ_LEVELS = {
   kindergarten: {
     id: 'kindergarten',
     label: 'InsightIQ',
@@ -15,7 +15,7 @@ const WECHSLER_LEVELS = {
     perIndex: 6,
     normMean: 0.55,
     normSd: 0.20,
-    isWechsler: true,
+    isInsightIQ: true,
     recKey: 'kindergarten'
   },
   elementary: {
@@ -31,7 +31,7 @@ const WECHSLER_LEVELS = {
     perIndex: 7,
     normMean: 0.58,
     normSd: 0.19,
-    isWechsler: true,
+    isInsightIQ: true,
     recKey: 'elementary'
   },
   middle: {
@@ -47,7 +47,7 @@ const WECHSLER_LEVELS = {
     perIndex: 7,
     normMean: 0.60,
     normSd: 0.18,
-    isWechsler: true,
+    isInsightIQ: true,
     recKey: 'middle'
   },
   high: {
@@ -63,7 +63,7 @@ const WECHSLER_LEVELS = {
     perIndex: 8,
     normMean: 0.62,
     normSd: 0.17,
-    isWechsler: true,
+    isInsightIQ: true,
     recKey: 'high'
   },
   insightiq: {
@@ -79,7 +79,7 @@ const WECHSLER_LEVELS = {
     perIndex: 6,
     normMean: 0.62,
     normSd: 0.17,
-    isWechsler: true,
+    isInsightIQ: true,
     useCAT: true,
     catMinItems: 25,
     catMaxItems: 35,
@@ -94,17 +94,17 @@ const WECHSLER_LEVELS = {
     subLabel: '간편',
     ageRange: '19세 이상',
     icon: '💼',
-    description: '고난도 종합 인지 검사 (CHC)',
+    description: '성인 고난도 CHC 종합 인지 검사',
     timeLimit: 25,
     questionCount: 15,
-    normMean: 0.65,
-    normSd: 0.17,
-    isWechsler: false,
+    normMean: 0.52,
+    normSd: 0.16,
+    isInsightIQ: false,
     recKey: 'adult'
   }
 };
 
-const WECHSLER_INDICES = {
+const INSIGHTIQ_INDICES = {
   VCI: {
     code: 'VCI',
     name: '언어이해',
@@ -131,7 +131,7 @@ const WECHSLER_INDICES = {
   }
 };
 
-const WECHSLER_SUBTEST_LABELS = {
+const INSIGHTIQ_DETAIL_LABELS = {
   '공통성': '공통성', '어휘': '어휘', '상식': '상식', '이해': '이해',
   '질문': '질문', '이름대기': '이름대기', '재미': '재미',
   '행렬추론': '행렬추론', '퍼즐': '퍼즐', '토막짜기': '토막짜기',
@@ -142,7 +142,7 @@ const WECHSLER_SUBTEST_LABELS = {
   '기호찾기': '기호 찾기'
 };
 
-const WECHSLER_CLASSIFICATIONS = [
+const INSIGHTIQ_CLASSIFICATIONS = [
   { min: 130, label: '매우 우수 (Superior)', desc: 'InsightIQ 규준 상위 2% 수준' },
   { min: 120, label: '우수 (High Average)', desc: 'InsightIQ 규준 상위 10% 수준' },
   { min: 110, label: '평균 상 (High Average)', desc: 'InsightIQ 규준 상위 25% 수준' },
@@ -152,13 +152,8 @@ const WECHSLER_CLASSIFICATIONS = [
   { min: 0, label: '저하 (Extremely Low)', desc: '전문가 지능검사 상담을 권장합니다' }
 ];
 
-// 하위 호환 (내부 코드용)
-const KWAIS_INDICES = WECHSLER_INDICES;
-const KWAIS_SUBTEST_LABELS = WECHSLER_SUBTEST_LABELS;
-const KWAIS_CLASSIFICATIONS = WECHSLER_CLASSIFICATIONS;
-const INSIGHTIQ_CONFIG = WECHSLER_LEVELS.insightiq;
-const KWAIS_CONFIG = INSIGHTIQ_CONFIG;
+const INSIGHTIQ_CONFIG = INSIGHTIQ_LEVELS.insightiq;
 
 function getAllAgeLevels() {
-  return { ...WECHSLER_LEVELS };
+  return { ...INSIGHTIQ_LEVELS };
 }

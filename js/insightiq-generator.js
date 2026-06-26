@@ -1,6 +1,6 @@
 // InsightIQ 성인용 절차적 문항 생성기 (500+ 고유 문항 · 매 세션 신규 생성)
 
-function kwaisRngSeed() {
+function insightiqRngSeed() {
   return (Date.now() ^ (Math.random() * 0xFFFFFFFF)) >>> 0;
 }
 
@@ -499,8 +499,8 @@ function generatePSI(rng, startId) {
 }
 
 /** 세션마다 500+ 고유 문항 은행 생성 */
-function generateKwaisQuestionBank(seed) {
-  const rng = mulberry32(seed ?? kwaisRngSeed());
+function generateInsightIQQuestionBank(seed) {
+  const rng = mulberry32(seed ?? insightiqRngSeed());
   let id = 0;
   const vci = generateVCI(rng, id); id = vci.nextId;
   const vsi = generateVSI(rng, id); id = vsi.nextId;
@@ -520,23 +520,23 @@ function generateKwaisQuestionBank(seed) {
 }
 
 /** 즉석 추가 문항 1개 (은행 소진 시) */
-function generateKwaisQuestionOnDemand(index, difficulty, rng) {
-  const r = rng || mulberry32(kwaisRngSeed());
+function generateInsightIQQuestionOnDemand(index, difficulty, rng) {
+  const r = rng || mulberry32(insightiqRngSeed());
   const gens = { VCI: generateVCI, VSI: generateVSI, FRI: generateFRI, WMI: generateWMI, PSI: generatePSI };
   const gen = gens[index] || generateFRI;
   const batch = gen(r, Date.now()).questions.filter(q => Math.abs(q.difficulty - difficulty) <= 1);
   return batch[Math.floor(r() * batch.length)] || gen(r, 0).questions[0];
 }
 
-let _kwaisBankCache = null;
+let _insightiqBankCache = null;
 
-function getKwaisQuestionBank(forceNew) {
-  if (!forceNew && _kwaisBankCache) return _kwaisBankCache;
-  const seed = kwaisRngSeed();
-  _kwaisBankCache = generateKwaisQuestionBank(seed);
-  return _kwaisBankCache;
+function getInsightIQQuestionBank(forceNew) {
+  if (!forceNew && _insightiqBankCache) return _insightiqBankCache;
+  const seed = insightiqRngSeed();
+  _insightiqBankCache = generateInsightIQQuestionBank(seed);
+  return _insightiqBankCache;
 }
 
-function clearKwaisBankCache() {
-  _kwaisBankCache = null;
+function clearInsightIQBankCache() {
+  _insightiqBankCache = null;
 }

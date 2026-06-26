@@ -93,28 +93,7 @@ const QUESTION_EXTRA = {
     { category: '패턴', domain: 'visual', text: '1, 1, 2, 6, 24, ?', visual: '1, 1, 2, 6, 24, ?', options: ['48', '72', '120', '240'], answer: 2 }
   ],
 
-  adult: [
-    { category: '수리', domain: 'fluid', text: '5! = ?', options: ['60', '100', '120', '720'], answer: 2 },
-    { category: '수리', domain: 'fluid', text: '이자 5%, 원금 1000만원 2년 단리 이자는?', options: ['50만', '100만', '150만', '200만'], answer: 1 },
-    { category: '수리', domain: 'fluid', text: '4, 9, 16, 25, ?', visual: '4, 9, 16, 25, ?', options: ['30', '36', '42', '49'], answer: 1 },
-    { category: '수리', domain: 'fluid', text: '시계 6시 각도는?', options: ['150°', '160°', '170°', '180°'], answer: 3 },
-    { category: '논리', domain: 'fluid', text: '삼단논법: 모든 M은 P, 모든 S는 M → ?', options: ['모든 S는 P', '일부 S는 P', '모든 P는 S', 'S는 P가 아니다'], answer: 0 },
-    { category: '논리', domain: 'fluid', text: '확증 편향이란?', options: ['모든 정보 수용', '자신의 믿음을 지지하는 정보만 선택', '무작위 판단', '감정적 결정'], answer: 1 },
-    { category: '언어', domain: 'crystallized', text: '「절제」와 가까운 말은?', options: ['과욕', '자제', '낭비', '방종'], answer: 1 },
-    { category: '언어', domain: 'crystallized', text: 'DNA : 유전 = 소프트웨어 : ?', options: ['하드웨어', '프로그램', '데이터', '네트워크'], answer: 1 },
-    { category: '패턴', domain: 'visual', text: 'J, F, M, A, M, ?', visual: 'J, F, M, A, M, ?', options: ['J', 'A', 'S', 'O'], answer: 0 },
-    { category: '패턴', domain: 'visual', text: '▲▼▲▼▲ ?', visual: '▲▼▲▼▲ ?', options: ['▲', '▼', '■', '●'], answer: 1 },
-    { category: '공간', domain: 'visual', text: '지구에서 달까지 약?', options: ['3.8만km', '38만km', '380만km', '3800만km'], answer: 1 },
-    { category: '수리', domain: 'fluid', text: '평균 70, 80, 90의 값은?', options: ['75', '80', '85', '90'], answer: 1 },
-    { category: '논리', domain: 'fluid', text: '가설 검정에서 p-value가 작으면?', options: ['귀무가설 기각', '귀무가설 채택', '표본 부족', '오류 없음'], answer: 0 },
-    { category: '언어', domain: 'crystallized', text: '「뉘앙스」의 뜻은?', options: ['명확한 뜻', '미묘한 뉘앙스·의미', '거짓', '소리'], answer: 1 },
-    { category: '패턴', domain: 'fluid', text: '0, 1, 1, 2, 3, 5, 8, ?', visual: '0, 1, 1, 2, 3, 5, 8, ?', options: ['11', '12', '13', '14'], answer: 2 },
-    { category: '공간', domain: 'visual', text: '위도 0°는?', options: ['북극', '적도', '남극', '본초자오선'], answer: 1 },
-    { category: '수리', domain: 'fluid', text: '25% = 분수로?', options: ['1/2', '1/3', '1/4', '1/5'], answer: 2 },
-    { category: '논리', domain: 'fluid', text: '순환논증의 문제는?', options: ['결론이 거짓', '전제가 결론을 가정', '표본 부족', '감정 개입'], answer: 1 },
-    { category: '언어', domain: 'crystallized', text: '「항등」에 가까운 것은?', options: ['모순', '항상 참인 동어반복', '항상 거짓', '조건부 명제'], answer: 1 },
-    { category: '패턴', domain: 'visual', text: 'SUN, MON, TUE, ?', visual: 'SUN, MON, TUE, ?', options: ['THU', 'WED', 'FRI', 'SAT'], answer: 1 }
-  ]
+  adult: []
 };
 
 function getFullQuestionPool(levelId) {
@@ -125,8 +104,11 @@ function getFullQuestionPool(levelId) {
 
 function buildIqTest(levelId, count) {
   const config = getAllAgeLevels()[levelId];
-  if (config?.isWechsler && typeof buildWechslerTest === 'function') {
-    return buildWechslerTest(levelId);
+  if (config?.isInsightIQ && typeof buildInsightIQTest === 'function') {
+    return buildInsightIQTest(levelId);
+  }
+  if (levelId === 'adult' && typeof buildAdultChcTest === 'function') {
+    return buildAdultChcTest(count);
   }
   const pool = getFullQuestionPool(levelId);
   return prepareTestQuestions(pool, count, 'category');

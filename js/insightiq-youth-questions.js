@@ -1,6 +1,6 @@
 // 유치원·초·중·고 InsightIQ 문항 풀
 
-const YOUTH_WECHSLER_POOLS = {
+const YOUTH_INSIGHTIQ_POOLS = {
   kindergarten: [
     // VCI
     { index: 'VCI', subtest: '공통성', text: '강아지와 고양이의 공통점은?', options: ['동물이다', '크다', '빠르다', '짖는다'], answer: 0 },
@@ -138,11 +138,11 @@ const YOUTH_WECHSLER_POOLS = {
   ]
 };
 
-function buildWechslerTest(levelId) {
-  const config = WECHSLER_LEVELS[levelId];
+function buildInsightIQTest(levelId) {
+  const config = INSIGHTIQ_LEVELS[levelId];
   if (levelId === 'insightiq') return [];
 
-  const pool = YOUTH_WECHSLER_POOLS[levelId];
+  const pool = YOUTH_INSIGHTIQ_POOLS[levelId];
   if (!pool || !config) return [];
 
   const indices = ['VCI', 'PRI', 'WMI', 'PSI'];
@@ -156,9 +156,9 @@ function buildWechslerTest(levelId) {
   return shuffleArray(selected).map(shuffleQuestionOptions);
 }
 
-function getWechslerPoolSize(levelId) {
+function getInsightIQPoolSize(levelId) {
   if (levelId === 'insightiq') {
-    return getKwaisQuestionBank().count;
+    return getInsightIQQuestionBank().count;
   }
-  return (YOUTH_WECHSLER_POOLS[levelId] || []).length;
+  return (YOUTH_INSIGHTIQ_POOLS[levelId] || []).length;
 }

@@ -5,15 +5,15 @@ function ratioToIndexScore(ratio, config) {
   return Math.max(55, Math.min(145, Math.round(100 + 15 * z)));
 }
 
-function getWechslerClassification(score) {
-  return WECHSLER_CLASSIFICATIONS.find(c => score >= c.min) ||
-    WECHSLER_CLASSIFICATIONS[WECHSLER_CLASSIFICATIONS.length - 1];
+function getInsightIQClassification(score) {
+  return INSIGHTIQ_CLASSIFICATIONS.find(c => score >= c.min) ||
+    INSIGHTIQ_CLASSIFICATIONS[INSIGHTIQ_CLASSIFICATIONS.length - 1];
 }
 
 function getIndexStats(questions, answers) {
   const stats = {};
-  Object.keys(WECHSLER_INDICES).forEach(k => {
-    stats[k] = { correct: 0, total: 0, subtests: {} };
+  Object.keys(INSIGHTIQ_INDICES).forEach(k => {
+    stats[k] = { correct: 0, total: 0, details: {} };
   });
 
   questions.forEach((q, i) => {
@@ -22,17 +22,17 @@ function getIndexStats(questions, answers) {
     stats[idx].total++;
     if (answers[i] === q.answer) stats[idx].correct++;
 
-    if (!stats[idx].subtests[q.subtest]) {
-      stats[idx].subtests[q.subtest] = { correct: 0, total: 0 };
+    if (!stats[idx].details[q.subtest]) {
+      stats[idx].details[q.subtest] = { correct: 0, total: 0 };
     }
-    stats[idx].subtests[q.subtest].total++;
-    if (answers[i] === q.answer) stats[idx].subtests[q.subtest].correct++;
+    stats[idx].details[q.subtest].total++;
+    if (answers[i] === q.answer) stats[idx].details[q.subtest].correct++;
   });
 
   return stats;
 }
 
-function buildWechslerReport(questions, answers, elapsed, config) {
+function buildInsightIQReport(questions, answers, elapsed, config) {
   const correct = answers.filter((a, i) => a === questions[i].answer).length;
   const total = questions.length;
   const indexStats = getIndexStats(questions, answers);
@@ -45,57 +45,52 @@ function buildWechslerReport(questions, answers, elapsed, config) {
       correct: s.correct,
       total: s.total,
       ratio,
-      subtests: s.subtests,
-      info: WECHSLER_INDICES[key]
+      details: s.details,
+      info: INSIGHTIQ_INDICES[key]
     };
   });
 
-  const fsiq = Math.round(
+  const compositeIQ = Math.round(
     (indexScores.VCI.score + indexScores.PRI.score + indexScores.WMI.score + indexScores.PSI.score) / 4
   );
-  const gai = Math.round((indexScores.VCI.score + indexScores.PRI.score) / 2);
-  const classification = getWechslerClassification(fsiq);
-  const percentile = Math.round(normCdf((fsiq - 100) / 15) * 100);
+  const coreIndex = Math.round((indexScores.VCI.score + indexScores.PRI.score) / 2);
+  const classification = getInsightIQClassification(compositeIQ);
+  const percentile = Math.round(normCdf((compositeIQ - 100) / 15) * 100);
 
-  const subtestStats = getSubtestStats(questions, answers);
-  const { strengths, weaknesses } = getWechslerStrengthsWeaknesses(indexScores);
+  const detailStats = getDetailStats(questions, answers);
+  const { strengths, weaknesses } = getInsightIQStrengthsWeaknesses(indexScores);
   const speedLevel = getSpeedScore(elapsed, config.timeLimit, correct, total);
   const recKey = config.recKey || 'adult';
-  const performanceTier = fsiq >= 115 ? 'high' : fsiq >= 90 ? 'mid' : 'low';
+  const performanceTier = compositeIQ >= 115 ? 'high' : compositeIQ >= 90 ? 'mid' : 'low';
   const recs = AGE_RECOMMENDATIONS[recKey] || AGE_RECOMMENDATIONS.adult;
 
   return {
-    isWechsler: true,
-    fsiq,
-    gai,
-    iq: fsiq,
+    isInsightIQ: true,
+    compositeIQ,
+    coreIndex,
+    iq: compositeIQ,
     indexScores,
     classification,
     percentile,
     correct,
     total,
     elapsed,
-    subtestStats,
+    detailStats,
     strengths,
     weaknesses,
     speedLevel,
     recommendations: recs[performanceTier],
-    summary: buildWechslerSummary(config, fsiq, gai, classification, correct, total, percentile),
+    summary: buildInsightIQSummary(config, compositeIQ, coreIndex, classification, correct, total, percentile),
     indexAnalysis: buildIndexAnalysis(indexScores),
-    subtestAnalysis: buildSubtestAnalysis(subtestStats),
-    strengthText: buildWechslerStrengthText(strengths),
-    weaknessText: buildWechslerWeaknessText(weaknesses),
-    comparisonText: buildWechslerComparison(config, fsiq, gai, percentile),
-    cognitiveProfile: buildWechslerProfile(indexScores, speedLevel)
+    detailAnalysis: buildDetailAnalysis(detailStats),
+    strengthText: buildInsightIQStrengthText(strengths),
+    weaknessText: buildInsightIQWeaknessText(weaknesses),
+    comparisonText: buildInsightIQComparison(config, compositeIQ, coreIndex, percentile),
+    cognitiveProfile: buildInsightIQProfile(indexScores, speedLevel)
   };
 }
 
-// 하위 호환
-function buildKwaisReport(questions, answers, elapsed, config) {
-  return buildWechslerReport(questions, answers, elapsed, config);
-}
-
-function getSubtestStats(questions, answers) {
+function getDetailStats(questions, answers) {
   const stats = {};
   questions.forEach((q, i) => {
     const key = q.subtest;
@@ -106,7 +101,7 @@ function getSubtestStats(questions, answers) {
   return stats;
 }
 
-function getWechslerStrengthsWeaknesses(indexScores) {
+function getInsightIQStrengthsWeaknesses(indexScores) {
   const entries = Object.entries(indexScores).map(([key, s]) => ({
     key, score: s.score, name: s.info.name
   }));
@@ -117,12 +112,12 @@ function getWechslerStrengthsWeaknesses(indexScores) {
   };
 }
 
-function buildWechslerSummary(config, fsiq, gai, cls, correct, total, percentile) {
+function buildInsightIQSummary(config, compositeIQ, coreIndex, cls, correct, total, percentile) {
   const exam = config.examName;
   const sub = config.subLabel ? ` (${config.subLabel} · ${config.ageRange})` : ` (${config.ageRange})`;
   return `<strong>${exam}</strong>${sub} 검사 결과, ` +
-    `<strong>종합 IQ ${fsiq}</strong>점으로 「${cls.label}」에 해당합니다(백분위 ${percentile}%). ` +
-    `핵심 능력 지수(언어·지각)는 <strong>${gai}</strong>점입니다. ` +
+    `<strong>종합 IQ ${compositeIQ}</strong>점으로 「${cls.label}」에 해당합니다(백분위 ${percentile}%). ` +
+    `핵심 능력 지수(언어·지각)는 <strong>${coreIndex}</strong>점입니다. ` +
     `총 ${total}문항 중 ${correct}문항 정답. ` +
     `※ 공인 임상 지능검사가 아니며 참고용입니다.`;
 }
@@ -139,11 +134,11 @@ function buildIndexAnalysis(indexScores) {
   });
 }
 
-function buildSubtestAnalysis(subtestStats) {
-  return Object.entries(subtestStats)
+function buildDetailAnalysis(detailStats) {
+  return Object.entries(detailStats)
     .map(([name, s]) => ({
       name,
-      label: WECHSLER_SUBTEST_LABELS[name] || name,
+      label: INSIGHTIQ_DETAIL_LABELS[name] || name,
       index: s.index,
       correct: s.correct,
       total: s.total,
@@ -152,45 +147,43 @@ function buildSubtestAnalysis(subtestStats) {
     .sort((a, b) => b.pct - a.pct);
 }
 
-function buildWechslerStrengthText(strengths) {
-  if (!strengths.length) return '4개 지표가 고르게 나타났습니다.';
-  return strengths.map(s => `${s.name} 지표 (${s.score}점)`).join(', ') + '에서 강점이 보입니다.';
+function buildInsightIQStrengthText(strengths) {
+  if (!strengths.length) return '4개 영역이 고르게 나타났습니다.';
+  return strengths.map(s => `${s.name} 영역 (${s.score}점)`).join(', ') + '에서 강점이 보입니다.';
 }
 
-function buildWechslerWeaknessText(weaknesses) {
-  if (!weaknesses.length) return '특별히 취약한 지표가 관찰되지 않았습니다.';
-  return weaknesses.map(s => `${s.name} 지표 (${s.score}점)`).join(', ') + ' 영역 보완을 권장합니다.';
+function buildInsightIQWeaknessText(weaknesses) {
+  if (!weaknesses.length) return '특별히 취약한 영역이 관찰되지 않았습니다.';
+  return weaknesses.map(s => `${s.name} 영역 (${s.score}점)`).join(', ') + ' 보완을 권장합니다.';
 }
 
-function buildWechslerComparison(config, fsiq, gai, percentile) {
+function buildInsightIQComparison(config, compositeIQ, coreIndex, percentile) {
   const exam = config.examName;
   const age = config.ageRange;
-  const gaiDiff = gai - fsiq;
-  let gaiNote = '';
-  if (gaiDiff >= 5) gaiNote = ' 핵심 능력 지수가 종합 IQ보다 높아, 작업기억·처리속도 영향이 상대적으로 낮을 수 있습니다.';
-  else if (gaiDiff <= -5) gaiNote = ' 종합 IQ가 핵심 능력 지수보다 높아, 작업기억·처리속도에서 추가 점수를 얻었을 수 있습니다.';
+  const coreDiff = coreIndex - compositeIQ;
+  let coreNote = '';
+  if (coreDiff >= 5) coreNote = ' 핵심 능력 지수가 종합 IQ보다 높아, 작업기억·처리속도 영향이 상대적으로 낮을 수 있습니다.';
+  else if (coreDiff <= -5) coreNote = ' 종합 IQ가 핵심 능력 지수보다 높아, 작업기억·처리속도에서 추가 점수를 얻었을 수 있습니다.';
 
-  if (fsiq >= 120) return `${exam} 연령 규준(${age}) 기준 상위권입니다.${gaiNote}`;
-  if (fsiq >= 90) return `${exam} 연령 규준(${age}) 기준 평균 범위에 해당합니다.${gaiNote}`;
-  return `${exam} 연령 규준(${age}) 기준 보완이 필요한 영역이 있을 수 있습니다. 전문가 실시를 권장합니다.${gaiNote}`;
+  if (compositeIQ >= 120) return `${exam} 연령 규준(${age}) 기준 상위권입니다.${coreNote}`;
+  if (compositeIQ >= 90) return `${exam} 연령 규준(${age}) 기준 평균 범위에 해당합니다.${coreNote}`;
+  return `${exam} 연령 규준(${age}) 기준 보완이 필요한 영역이 있을 수 있습니다. 전문가 상담을 권장합니다.${coreNote}`;
 }
 
-function buildWechslerProfile(indexScores, speedLevel) {
+function buildInsightIQProfile(indexScores, speedLevel) {
   const parts = Object.entries(indexScores).map(([, s]) =>
-    `<strong>${s.info.fullName}</strong> (${s.correct}/${s.total}, 지표 ${s.score}점): ${s.info.desc}`
+    `<strong>${s.info.fullName}</strong> (${s.correct}/${s.total}, ${s.score}점): ${s.info.desc}`
   );
   parts.push(`<strong>처리속도 수행</strong>: ${DOMAIN_DESCRIPTIONS.speed[speedLevel]}`);
   return parts;
 }
 
-function getKwaisClassification(score) { return getWechslerClassification(score); }
-
 /** IRT·CAT 기반 InsightIQ 성인 리포트 */
-function buildKwaisCATReport(catResults, elapsed, config) {
-  const { theta, se, fsiq, gai, domainScores, responses, administered, bankSize } = catResults;
+function buildInsightIQCATReport(catResults, elapsed, config) {
+  const { theta, se, compositeIQ, coreIndex, domainScores, responses, administered, bankSize } = catResults;
   const correct = responses.filter(r => r.correct).length;
   const total = responses.length;
-  const classification = getWechslerClassification(fsiq);
+  const classification = getInsightIQClassification(compositeIQ);
   const percentile = thetaToPercentile(theta);
 
   const indexScores = {};
@@ -210,16 +203,16 @@ function buildKwaisCATReport(catResults, elapsed, config) {
   const strengths = entries.filter(e => e.score >= 110).slice(0, 2);
   const weaknesses = entries.filter(e => e.score < 90).slice(-2).reverse();
 
-  const subtestStats = {};
+  const detailStats = {};
   administered.forEach((q, i) => {
     const key = q.subtest;
-    if (!subtestStats[key]) subtestStats[key] = { correct: 0, total: 0, index: q.index };
-    subtestStats[key].total++;
-    if (responses[i]?.correct) subtestStats[key].correct++;
+    if (!detailStats[key]) detailStats[key] = { correct: 0, total: 0, index: q.index };
+    detailStats[key].total++;
+    if (responses[i]?.correct) detailStats[key].correct++;
   });
 
   const recKey = config.recKey || 'adult';
-  const performanceTier = fsiq >= 115 ? 'high' : fsiq >= 90 ? 'mid' : 'low';
+  const performanceTier = compositeIQ >= 115 ? 'high' : compositeIQ >= 90 ? 'mid' : 'low';
   const recs = AGE_RECOMMENDATIONS[recKey] || AGE_RECOMMENDATIONS.adult;
   const speedLevel = getSpeedScore(elapsed, config.timeLimit, correct, total);
 
@@ -227,11 +220,11 @@ function buildKwaisCATReport(catResults, elapsed, config) {
   const exam = config.examName;
 
   return {
-    isWechsler: true,
+    isInsightIQ: true,
     isCAT: true,
-    fsiq,
-    gai,
-    iq: fsiq,
+    compositeIQ,
+    coreIndex,
+    iq: compositeIQ,
     theta,
     se,
     seIQ,
@@ -247,33 +240,33 @@ function buildKwaisCATReport(catResults, elapsed, config) {
     speedLevel,
     recommendations: recs[performanceTier],
     summary: `<strong>${exam}</strong> IRT·CAT 적응형 검사 결과, ` +
-      `<strong>종합 IQ ${fsiq}</strong>점(θ=${theta.toFixed(2)}, SE≈${seIQ} IQ)으로 「${classification.label}」에 해당합니다(백분위 ${percentile}%). ` +
-      `핵심 능력 지수(언어·시공간·유동) <strong>${gai}</strong>점. ` +
+      `<strong>종합 IQ ${compositeIQ}</strong>점(θ=${theta.toFixed(2)}, SE≈${seIQ} IQ)으로 「${classification.label}」에 해당합니다(백분위 ${percentile}%). ` +
+      `핵심 능력 지수(언어·시공간·유동) <strong>${coreIndex}</strong>점. ` +
       `총 ${total}문항(은행 ${bankSize}문항 중 적응 출제). ` +
       `※ 공인 임상 지능검사가 아니며 참고용.`,
-    subtestAnalysis: buildSubtestAnalysis(subtestStats),
+    detailAnalysis: buildDetailAnalysis(detailStats),
     strengthText: strengths.length
       ? strengths.map(s => `${s.name} (${s.score}점)`).join(', ') + '에서 강점.'
       : '5개 영역이 고르게 나타났습니다.',
     weaknessText: weaknesses.length
       ? weaknesses.map(s => `${s.name} (${s.score}점)`).join(', ') + ' 보완 권장.'
       : '특별히 취약한 영역이 관찰되지 않았습니다.',
-    comparisonText: buildKwaisCATComparison(config, fsiq, gai, percentile, seIQ),
-    cognitiveProfile: buildKwaisCATProfile(indexScores, speedLevel, se)
+    comparisonText: buildInsightIQCATComparison(config, compositeIQ, coreIndex, percentile, seIQ),
+    cognitiveProfile: buildInsightIQCATProfile(indexScores, speedLevel, se)
   };
 }
 
-function buildKwaisCATComparison(config, fsiq, gai, percentile, seIQ) {
-  const range = `추정 범위 약 ${fsiq - seIQ}~${fsiq + seIQ}점`;
+function buildInsightIQCATComparison(config, compositeIQ, coreIndex, percentile, seIQ) {
+  const range = `추정 범위 약 ${compositeIQ - seIQ}~${compositeIQ + seIQ}점`;
   let base = `IRT 적응형 추정 ${range}(95% 신뢰에 가까운 SE). `;
-  if (fsiq >= 120) base += '성인 규준 상위권 수준입니다.';
-  else if (fsiq >= 90) base += '성인 규준 평균 범위입니다.';
+  if (compositeIQ >= 120) base += '성인 규준 상위권 수준입니다.';
+  else if (compositeIQ >= 90) base += '성인 규준 평균 범위입니다.';
   else base += '일부 영역 보완이 도움이 될 수 있습니다.';
-  if (gai > fsiq + 5) base += ' 핵심 능력 지수가 종합 IQ보다 높아 작업기억·처리속도가 상대적으로 낮을 수 있습니다.';
+  if (coreIndex > compositeIQ + 5) base += ' 핵심 능력 지수가 종합 IQ보다 높아 작업기억·처리속도가 상대적으로 낮을 수 있습니다.';
   return base;
 }
 
-function buildKwaisCATProfile(indexScores, speedLevel, se) {
+function buildInsightIQCATProfile(indexScores, speedLevel, se) {
   const parts = Object.entries(indexScores).map(([, s]) =>
     `<strong>${s.info.fullName}</strong> (${s.correct}/${s.total}, 추정 ${s.score}점): ${s.info.desc}`
   );
@@ -281,4 +274,3 @@ function buildKwaisCATProfile(indexScores, speedLevel, se) {
   parts.push(`<strong>처리속도 수행</strong>: ${DOMAIN_DESCRIPTIONS.speed[speedLevel]}`);
   return parts;
 }
-

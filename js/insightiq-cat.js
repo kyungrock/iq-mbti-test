@@ -8,11 +8,9 @@ const INSIGHTIQ_DOMAINS = {
   PSI: { code: 'PSI', name: '처리속도', fullName: '처리속도 (PSI)', desc: '신속한 시지각 처리·기호 변환' }
 };
 
-const KWAIS_DOMAINS = INSIGHTIQ_DOMAINS;
 const INSIGHTIQ_DOMAIN_ORDER = ['VCI', 'VSI', 'FRI', 'WMI', 'PSI'];
-const KWAIS_DOMAIN_ORDER = INSIGHTIQ_DOMAIN_ORDER;
 
-function createKwaisCATSession(config) {
+function createInsightIQCATSession(config) {
   const cfg = {
     warmupItems: config?.warmupItems ?? 3,
     minItems: config?.catMinItems ?? 25,
@@ -22,8 +20,8 @@ function createKwaisCATSession(config) {
     ...config
   };
 
-  clearKwaisBankCache();
-  const { bank, seed } = getKwaisQuestionBank(true);
+  clearInsightIQBankCache();
+  const { bank, seed } = getInsightIQQuestionBank(true);
   const rng = mulberry32(seed);
   const usedIds = new Set();
 
@@ -50,51 +48,20 @@ function createKwaisCATSession(config) {
     itemIndex++;
   }
 
-  function selectByInformation(pool, targetTheta) {
-    if (!pool.length) return null;
-    let best = pool[0];
-    let bestInfo = -1;
-    pool.forEach(q => {
-      const info = itemInformation(targetTheta, q.discrimination, q.irtB);
-      if (info > bestInfo) {
-        bestInfo = info;
-        best = q;
-      }
-    });
-    return shuffleQuestionOptions(best);
-  }
-
-  function pickWarmup(n) {
-    const domains = KWAIS_DOMAIN_ORDER.slice();
-    const items = [];
-    for (let i = 0; i < n; i++) {
-      const domain = domains[i % domains.length];
-      const pool = availablePool(domain, 2, 4);
-      const q = pool.length
-        ? pool[Math.floor(rng() * pool.length)]
-        : bank.find(x => x.index === domain && !usedIds.has(x.id));
-      if (q) {
-        markUsed(q);
-        items.push(shuffleQuestionOptions(q));
-      }
-    }
-    return items;
-  }
-
   function nextDomain() {
-    const under = KWAIS_DOMAIN_ORDER.filter(d => domainCounts[d] < cfg.minPerDomain);
+    const under = INSIGHTIQ_DOMAIN_ORDER.filter(d => domainCounts[d] < cfg.minPerDomain);
     if (under.length) return under.sort((a, b) => domainCounts[a] - domainCounts[b])[0];
-    return KWAIS_DOMAIN_ORDER[itemIndex % KWAIS_DOMAIN_ORDER.length];
+    return INSIGHTIQ_DOMAIN_ORDER[itemIndex % INSIGHTIQ_DOMAIN_ORDER.length];
   }
 
   function getNextQuestion() {
     if (itemIndex < cfg.warmupItems) {
-      const domain = KWAIS_DOMAIN_ORDER[itemIndex % KWAIS_DOMAIN_ORDER.length];
+      const domain = INSIGHTIQ_DOMAIN_ORDER[itemIndex % INSIGHTIQ_DOMAIN_ORDER.length];
       const pool = availablePool(domain, 2, 4);
       let q = pool.length
         ? pool[Math.floor(rng() * pool.length)]
         : bank.find(x => x.index === domain && !usedIds.has(x.id));
-      if (!q) q = generateKwaisQuestionOnDemand(domain, 3, rng);
+      if (!q) q = generateInsightIQQuestionOnDemand(domain, 3, rng);
       if (!q) return null;
       markUsed(q);
       return shuffleQuestionOptions(q);
@@ -106,7 +73,7 @@ function createKwaisCATSession(config) {
 
     let pool = availablePool(domain, 3, 10);
     if (!pool.length) {
-      const fresh = generateKwaisQuestionOnDemand(domain, irtBToDifficulty(targetB), rng);
+      const fresh = generateInsightIQQuestionOnDemand(domain, irtBToDifficulty(targetB), rng);
       if (fresh) pool = [fresh];
     }
 
@@ -126,14 +93,13 @@ function createKwaisCATSession(config) {
 
   function recordResponse(question, answerIndex, timeMs) {
     const correct = answerIndex === question.answer;
-    const entry = {
+    responses.push({
       question,
       correct,
       timeMs,
       a: question.discrimination,
       b: question.irtB
-    };
-    responses.push(entry);
+    });
 
     if (responses.length <= cfg.warmupItems && correct) {
       boostDifficulty = 1.5;
@@ -149,7 +115,7 @@ function createKwaisCATSession(config) {
 
   function isComplete() {
     const se = estimateStandardError(theta, responses.map(r => ({ a: r.a, b: r.b, correct: r.correct })));
-    const domainOk = KWAIS_DOMAIN_ORDER.every(d => domainCounts[d] >= cfg.minPerDomain);
+    const domainOk = INSIGHTIQ_DOMAIN_ORDER.every(d => domainCounts[d] >= cfg.minPerDomain);
     if (itemIndex < cfg.minItems) return false;
     if (itemIndex >= cfg.maxItems) return true;
     return domainOk && se <= cfg.targetSE;
@@ -161,14 +127,14 @@ function createKwaisCATSession(config) {
 
   function getDomainThetas() {
     const byDomain = {};
-    KWAIS_DOMAIN_ORDER.forEach(d => { byDomain[d] = []; });
+    INSIGHTIQ_DOMAIN_ORDER.forEach(d => { byDomain[d] = []; });
     responses.forEach(r => {
       if (byDomain[r.question.index]) {
         byDomain[r.question.index].push({ a: r.a, b: r.b, correct: r.correct });
       }
     });
     const scores = {};
-    KWAIS_DOMAIN_ORDER.forEach(d => {
+    INSIGHTIQ_DOMAIN_ORDER.forEach(d => {
       const dr = byDomain[d];
       const t = dr.length ? estimateThetaMLE(dr, theta) : theta;
       scores[d] = {
@@ -184,15 +150,15 @@ function createKwaisCATSession(config) {
 
   function getResults() {
     const se = estimateStandardError(theta, responses.map(r => ({ a: r.a, b: r.b, correct: r.correct })));
-    const fsiq = thetaToIQ(theta);
+    const compositeIQ = thetaToIQ(theta);
     const domainScores = getDomainThetas();
-    const gai = Math.round((domainScores.VCI.score + domainScores.VSI.score + domainScores.FRI.score) / 3);
+    const coreIndex = Math.round((domainScores.VCI.score + domainScores.VSI.score + domainScores.FRI.score) / 3);
 
     return {
       theta,
       se,
-      fsiq,
-      gai,
+      compositeIQ,
+      coreIndex,
       domainScores,
       responses,
       administered,
@@ -218,8 +184,4 @@ function createKwaisCATSession(config) {
 function isInsightIQCATLevel(levelId) {
   const cfg = getAllAgeLevels()[levelId];
   return levelId === 'insightiq' && cfg?.useCAT;
-}
-
-function isKwaisCATLevel(levelId) {
-  return isInsightIQCATLevel(levelId);
 }

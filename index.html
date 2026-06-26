@@ -45,7 +45,7 @@
           </li>
           <li>
             <span class="feature-icon">🔬</span>
-            <span>정답 시 난이도 상승 · 500+ 절차적 문항 생성</span>
+            <span>성인 간편: 고난도 CHC · 논리·수리·언어·패턴</span>
           </li>
         </ul>
 
@@ -99,7 +99,7 @@
         <div class="result-header">
           <p class="result-label" id="result-iq-label">추정 IQ <span class="result-norm">(연령 규준)</span></p>
           <div id="iq-score" class="iq-score">—</div>
-          <p id="gai-score" class="gai-score" hidden>핵심 능력 지수 <span id="gai-value">—</span></p>
+          <p id="core-score" class="core-score" hidden>핵심 능력 지수 <span id="core-value">—</span></p>
           <p id="iq-level" class="iq-level"></p>
           <p id="iq-classification-desc" class="iq-classification-desc"></p>
         </div>
@@ -128,9 +128,9 @@
           <p id="result-summary" class="analysis-text"></p>
         </div>
 
-        <div class="analysis-section" id="kwais-index-section" hidden>
+        <div class="analysis-section" id="iq-index-section" hidden>
           <h3>InsightIQ 영역별 점수</h3>
-          <div id="kwais-index-bars"></div>
+          <div id="iq-index-bars"></div>
         </div>
 
         <div class="analysis-section">
@@ -144,9 +144,9 @@
           <div id="category-bars"></div>
         </div>
 
-        <div class="category-breakdown" id="kwais-subtest-section" hidden>
-          <h3>InsightIQ 소검사별 성적</h3>
-          <div id="kwais-subtest-bars"></div>
+        <div class="category-breakdown" id="iq-detail-section" hidden>
+          <h3>InsightIQ 세부 항목별 성적</h3>
+          <div id="iq-detail-bars"></div>
         </div>
 
         <div class="analysis-grid">
@@ -183,16 +183,16 @@
   </footer>
 
   <script src="js/shuffle.js"></script>
-  <script src="js/wechsler-levels.js"></script>
+  <script src="js/insightiq-levels.js"></script>
   <script src="js/questions.js"></script>
+  <script src="js/adult-questions.js"></script>
   <script src="js/questions-extra.js"></script>
-  <script src="js/kwais-irt.js"></script>
-  <script src="js/kwais-generator.js"></script>
-  <script src="js/kwais-questions.js"></script>
-  <script src="js/kwais-cat.js"></script>
-  <script src="js/wechsler-questions-youth.js"></script>
+  <script src="js/insightiq-irt.js"></script>
+  <script src="js/insightiq-generator.js"></script>
+  <script src="js/insightiq-cat.js"></script>
+  <script src="js/insightiq-youth-questions.js"></script>
   <script src="js/analysis.js"></script>
-  <script src="js/kwais-analysis.js"></script>
+  <script src="js/insightiq-analysis.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

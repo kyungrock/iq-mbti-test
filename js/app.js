@@ -26,8 +26,8 @@
     resultAgeBadge: document.getElementById('result-age-badge'),
     resultIqLabel: document.getElementById('result-iq-label'),
     iqScore: document.getElementById('iq-score'),
-    gaiScore: document.getElementById('gai-score'),
-    gaiValue: document.getElementById('gai-value'),
+    coreScore: document.getElementById('core-score'),
+    coreValue: document.getElementById('core-value'),
     iqLevel: document.getElementById('iq-level'),
     iqClassificationDesc: document.getElementById('iq-classification-desc'),
     statCorrect: document.getElementById('stat-correct'),
@@ -35,16 +35,16 @@
     statTime: document.getElementById('stat-time'),
     statPercentile: document.getElementById('stat-percentile'),
     resultSummary: document.getElementById('result-summary'),
-    kwaisIndexSection: document.getElementById('kwais-index-section'),
-    kwaisIndexBars: document.getElementById('kwais-index-bars'),
+    iqIndexSection: document.getElementById('iq-index-section'),
+    iqIndexBars: document.getElementById('iq-index-bars'),
     profileSectionTitle: document.getElementById('profile-section-title'),
     domainBars: document.getElementById('domain-bars'),
     cognitiveProfile: document.getElementById('cognitive-profile'),
     categorySection: document.getElementById('category-section'),
     categorySectionTitle: document.getElementById('category-section-title'),
     categoryBars: document.getElementById('category-bars'),
-    kwaisSubtestSection: document.getElementById('kwais-subtest-section'),
-    kwaisSubtestBars: document.getElementById('kwais-subtest-bars'),
+    iqDetailSection: document.getElementById('iq-detail-section'),
+    iqDetailBars: document.getElementById('iq-detail-bars'),
     strengthText: document.getElementById('strength-text'),
     weaknessText: document.getElementById('weakness-text'),
     comparisonText: document.getElementById('comparison-text'),
@@ -72,14 +72,14 @@
     Object.values(levels).forEach(level => {
       const card = document.createElement('button');
       card.type = 'button';
-      card.className = 'age-level-card' + (level.isWechsler ? ' kwais-card' : '');
+      card.className = 'age-level-card' + (level.isInsightIQ ? ' insightiq-card' : '');
       card.dataset.level = level.id;
       card.setAttribute('role', 'radio');
       card.setAttribute('aria-checked', 'false');
       const displayLabel = level.subLabel
         ? `${level.label} · ${level.subLabel}`
         : level.label;
-      const meta = level.isWechsler
+      const meta = level.isInsightIQ
         ? (level.useCAT
           ? `CAT 적응형 · 최대 ${level.catMaxItems}문항 · IRT`
           : `${level.questionCount}문항 · ${level.timeLimit}분 · 종합 IQ`)
@@ -108,7 +108,7 @@
     });
 
     els.btnStart.disabled = false;
-    els.btnStart.textContent = levelConfig.isWechsler
+    els.btnStart.textContent = levelConfig.isInsightIQ
       ? `${levelConfig.examName} 검사 시작`
       : '테스트 시작';
   }
@@ -149,7 +149,7 @@
     if (q.index && q.subtest) {
       const domainMap = isCATMode && typeof INSIGHTIQ_DOMAINS !== 'undefined'
         ? INSIGHTIQ_DOMAINS
-        : WECHSLER_INDICES;
+        : INSIGHTIQ_INDICES;
       const idxName = domainMap[q.index]?.name || q.index;
       const diffTag = q.difficulty ? ` · Lv${q.difficulty}` : '';
       return `${q.subtest} · ${idxName}${diffTag}`;
@@ -168,8 +168,8 @@
       ? catSession.getProgressLabel()
       : `${state.currentIndex + 1} / ${questions.length}`;
     els.categoryBadge.textContent = getQuestionBadge(q);
-    if (levelConfig.isWechsler) els.categoryBadge.classList.add('kwais-badge');
-    else els.categoryBadge.classList.remove('kwais-badge');
+    if (levelConfig.isInsightIQ) els.categoryBadge.classList.add('insightiq-badge');
+    else els.categoryBadge.classList.remove('insightiq-badge');
     els.questionText.textContent = q.text;
 
     if (q.visual) {
@@ -238,7 +238,7 @@
       const pct = Math.round((stats.correct / stats.total) * 100);
       const row = document.createElement('div');
       row.className = 'category-bar-row';
-      const scoreText = showScore && stats.score != null ? ` · 지표 ${stats.score}점` : '';
+      const scoreText = showScore && stats.score != null ? ` · ${stats.score}점` : '';
       row.innerHTML = `
         <div class="category-bar-header">
           <span>${labelFn(key, stats)}</span>
@@ -259,9 +259,9 @@
 
   function showStandardResults(report) {
     els.resultIqLabel.innerHTML = '추정 IQ <span class="result-norm">(연령 규준)</span>';
-    els.gaiScore.hidden = true;
-    els.kwaisIndexSection.hidden = true;
-    els.kwaisSubtestSection.hidden = true;
+    els.coreScore.hidden = true;
+    els.iqIndexSection.hidden = true;
+    els.iqDetailSection.hidden = true;
     els.categorySection.hidden = false;
     els.profileSectionTitle.textContent = '인지 영역 프로필 (CHC)';
     els.categorySectionTitle.textContent = '세부 영역별 성적';
@@ -279,25 +279,25 @@
     );
   }
 
-  function showWechslerResults(report, config) {
+  function showInsightIQResults(report, config) {
     const exam = config.examName;
     els.resultIqLabel.innerHTML = report.isCAT
       ? `종합 IQ <span class="result-norm">(IRT·CAT 추정 · ${exam})</span>`
       : `종합 IQ <span class="result-norm">(${exam})</span>`;
-    els.gaiScore.hidden = false;
-    els.gaiValue.textContent = report.gai;
-    els.kwaisIndexSection.hidden = false;
-    els.kwaisSubtestSection.hidden = false;
+    els.coreScore.hidden = false;
+    els.coreValue.textContent = report.coreIndex;
+    els.iqIndexSection.hidden = false;
+    els.iqDetailSection.hidden = false;
     els.categorySection.hidden = true;
     els.profileSectionTitle.textContent = report.isCAT
       ? `${exam} 5영역 프로필 (IRT)`
-      : `${exam} 4지표 프로필`;
-    document.querySelector('#kwais-index-section h3').textContent = report.isCAT
+      : `${exam} 4영역 프로필`;
+    document.querySelector('#iq-index-section h3').textContent = report.isCAT
       ? `${exam} 5영역 점수`
-      : `${exam} 4지표 점수`;
-    document.querySelector('#kwais-subtest-section h3').textContent = `${exam} 소검사별 성적`;
+      : `${exam} 4영역 점수`;
+    document.querySelector('#iq-detail-section h3').textContent = `${exam} 세부 항목별 성적`;
 
-    els.iqScore.textContent = report.fsiq;
+    els.iqScore.textContent = report.compositeIQ;
     els.iqLevel.textContent = report.classification.label;
     els.iqClassificationDesc.textContent = report.classification.desc;
 
@@ -305,7 +305,7 @@
       key, { correct: s.correct, total: s.total, score: s.score, info: s.info }
     ]);
     renderBarChart(
-      els.kwaisIndexBars,
+      els.iqIndexBars,
       indexEntries,
       (key, stats) => stats.info.fullName,
       true
@@ -318,8 +318,8 @@
       true
     );
 
-    els.kwaisSubtestBars.innerHTML = '';
-    report.subtestAnalysis.forEach(st => {
+    els.iqDetailBars.innerHTML = '';
+    (report.detailAnalysis || []).forEach(st => {
       const row = document.createElement('div');
       row.className = 'category-bar-row';
       row.innerHTML = `
@@ -328,22 +328,22 @@
           <span>${st.correct}/${st.total} (${st.pct}%)</span>
         </div>
         <div class="category-bar-track">
-          <div class="category-bar-fill kwais-fill" style="width: ${st.pct}%"></div>
+          <div class="category-bar-fill insightiq-fill" style="width: ${st.pct}%"></div>
         </div>
       `;
-      els.kwaisSubtestBars.appendChild(row);
+      els.iqDetailBars.appendChild(row);
     });
   }
 
   function showResults() {
     const elapsed = Math.round((Date.now() - state.startTime) / 1000);
-    const isWechsler = levelConfig.isWechsler;
+    const isInsightIQ = levelConfig.isInsightIQ;
     let report;
 
-    if (isWechsler && isCATMode && catSession) {
-      report = buildKwaisCATReport(catSession.getResults(), elapsed, levelConfig);
-    } else if (isWechsler) {
-      report = buildWechslerReport(questions, state.answers, elapsed, levelConfig);
+    if (isInsightIQ && isCATMode && catSession) {
+      report = buildInsightIQCATReport(catSession.getResults(), elapsed, levelConfig);
+    } else if (isInsightIQ) {
+      report = buildInsightIQReport(questions, state.answers, elapsed, levelConfig);
     } else {
       report = buildProfessionalReport(selectedLevel, questions, state.answers, elapsed, levelConfig);
     }
@@ -358,7 +358,7 @@
     els.statPercentile.textContent = `${report.percentile}%`;
     els.resultSummary.innerHTML = report.summary;
 
-    if (isWechsler) showWechslerResults(report, levelConfig);
+    if (isInsightIQ) showInsightIQResults(report, levelConfig);
     else showStandardResults(report);
 
     els.cognitiveProfile.innerHTML = report.cognitiveProfile
@@ -387,11 +387,11 @@
   function startTest() {
     if (!selectedLevel) return;
 
-    isCATMode = isKwaisCATLevel(selectedLevel);
+    isCATMode = isInsightIQCATLevel(selectedLevel);
     catSession = null;
 
     if (isCATMode) {
-      catSession = createKwaisCATSession(levelConfig);
+      catSession = createInsightIQCATSession(levelConfig);
       const first = catSession.getNextQuestion();
       questions = first ? [first] : [];
     } else {
@@ -449,7 +449,7 @@
     questions = [];
     catSession = null;
     isCATMode = false;
-    clearKwaisBankCache();
+    clearInsightIQBankCache();
     els.btnStart.disabled = true;
     els.btnStart.textContent = '테스트 시작';
     els.ageLevels.querySelectorAll('.age-level-card').forEach(card => {
@@ -462,7 +462,7 @@
   els.btnShare.addEventListener('click', async () => {
     const score = els.iqScore.textContent;
     const level = levelConfig ? levelConfig.label : '';
-    const label = levelConfig?.isWechsler ? '종합 IQ' : '추정 IQ';
+    const label = levelConfig?.isInsightIQ ? '종합 IQ' : '추정 IQ';
     const text = `[${level}] InsightIQ 결과: ${label} ${score}점. 당신도 도전해 보세요!`;
     try {
       if (navigator.share) {
