@@ -1,0 +1,140 @@
+/* AI Cognitive Assessment — 진행행렬 검사 */
+
+.aca-bg {
+  background:
+    radial-gradient(ellipse 70% 50% at 20% -10%, rgba(56, 189, 248, 0.12), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 80%, rgba(167, 139, 250, 0.12), transparent);
+}
+
+.aca-badge {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.aca-card {
+  border-color: rgba(56, 189, 248, 0.2);
+}
+
+.aca-card:hover {
+  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(56, 189, 248, 0.06);
+}
+
+.aca-card.selected {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.tier-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.tier-chip.tier-1 { background: rgba(74, 222, 128, 0.12); color: #4ade80; border-color: rgba(74, 222, 128, 0.25); }
+.tier-chip.tier-2 { background: rgba(108, 140, 255, 0.12); color: #6c8cff; border-color: rgba(108, 140, 255, 0.25); }
+.tier-chip.tier-3 { background: rgba(251, 191, 36, 0.12); color: #fbbf24; border-color: rgba(251, 191, 36, 0.25); }
+.tier-chip.tier-4 { background: rgba(248, 113, 113, 0.12); color: #f87171; border-color: rgba(248, 113, 113, 0.25); }
+
+.aca-question-card {
+  text-align: center;
+}
+
+.aca-question-card .question-text {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+}
+
+.aca-matrix-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.aca-matrix-wrap svg.aca-matrix {
+  max-width: 100%;
+  height: auto;
+}
+
+.aca-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  gap: 0.75rem;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.aca-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.65rem;
+  background: var(--bg-elevated);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, transform 0.1s;
+}
+
+.aca-option:hover {
+  border-color: rgba(56, 189, 248, 0.5);
+  background: rgba(56, 189, 248, 0.06);
+}
+
+.aca-option.selected {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  transform: scale(1.02);
+}
+
+.aca-option-marker {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.aca-option svg {
+  display: block;
+}
+
+.aca-index-label {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.aca-index-label span {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.reliability-stat .stat-value {
+  color: #38bdf8;
+}
+
+.aca-tier-bars .category-bar-fill {
+  background: linear-gradient(90deg, #38bdf8, #6c8cff);
+}
+
+@media (max-width: 480px) {
+  .aca-options {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

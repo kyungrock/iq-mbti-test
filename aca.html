@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>AI Cognitive Assessment | 진행행렬 인지검사</title>
+  <meta name="description" content="AI Cognitive Assessment — 연령별 진행행렬 추론 검사. 쉬움→최상급 고정 구조, 매 회 AI 절차적 문항 생성">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=5">
+  <link rel="stylesheet" href="css/aca.css?v=5">
+</head>
+<body>
+  <div class="bg-pattern aca-bg" aria-hidden="true"></div>
+
+  <header class="site-header site-header-nav">
+    <a href="index.html" class="logo">
+      <span class="logo-icon">🧩</span>
+      <span class="logo-text">ACA</span>
+    </a>
+    <nav class="site-nav">
+      <a href="index.html">InsightIQ</a>
+      <a href="aca.html" class="active">행렬검사</a>
+      <a href="mbti.html">MBTI</a>
+    </nav>
+  </header>
+
+  <main id="app">
+    <section id="screen-start" class="screen active">
+      <div class="card hero-card">
+        <div class="hero-badge aca-badge">AI Cognitive Assessment · 진행행렬</div>
+        <h1>AI 인지능력<br>진행행렬 검사</h1>
+        <p class="hero-desc">
+          <strong>행렬추론·패턴·회전·대칭</strong> 등 시각적 추론 능력을 측정합니다.
+          모든 응시자는 <strong>쉬움 → 보통 → 어려움 → 최상급</strong> 동일 구조이며,
+          문항은 <strong>AI가 매 회 새로 생성</strong>합니다.
+        </p>
+        <ul class="feature-list">
+          <li><span class="feature-icon">🌱</span><span>유치원~성인: 연령 맞춤 문항만 출제</span></li>
+          <li><span class="feature-icon">📐</span><span>2×2·3×3 진행행렬 · 정답 1개 보장</span></li>
+          <li><span class="feature-icon">📊</span><span>AI Cognitive Index · 평균 100 · SD 15</span></li>
+        </ul>
+
+        <div class="age-select-section">
+          <h2 class="age-select-title">연령대를 선택하세요</h2>
+          <div id="age-levels" class="age-level-grid" role="radiogroup" aria-label="연령대 선택"></div>
+        </div>
+
+        <button id="btn-start" class="btn btn-primary btn-lg" disabled>검사 시작</button>
+        <p class="disclaimer">
+          ※ AI Cognitive Assessment는 공인 Raven·K-WAIS 등을 대체하지 않습니다.
+          공인 검사를 참고한 AI 기반 인지능력 평가 시스템입니다.
+        </p>
+      </div>
+    </section>
+
+    <section id="screen-test" class="screen">
+      <div class="test-header">
+        <div class="level-chip" id="test-level-chip"></div>
+        <div id="tier-chip" class="tier-chip tier-1">쉬움</div>
+        <div class="progress-wrap">
+          <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+          </div>
+          <span id="progress-text" class="progress-text">1 / 16</span>
+        </div>
+        <div id="timer" class="timer" aria-live="polite">
+          <span class="timer-icon">⏱</span>
+          <span id="timer-value">15:00</span>
+        </div>
+      </div>
+
+      <div class="card question-card aca-question-card">
+        <h2 id="question-text" class="question-text">빈 칸에 들어갈 도형을 고르세요.</h2>
+        <div id="matrix-wrap" class="aca-matrix-wrap"></div>
+        <div id="options" class="aca-options" role="radiogroup" aria-labelledby="question-text"></div>
+      </div>
+
+      <div class="test-nav">
+        <button id="btn-prev" class="btn btn-ghost" disabled>이전</button>
+        <button id="btn-next" class="btn btn-primary">다음</button>
+      </div>
+    </section>
+
+    <section id="screen-result" class="screen">
+      <div class="card result-card">
+        <div class="result-age-badge" id="result-age-badge"></div>
+
+        <div class="result-header">
+          <p class="result-label aca-index-label">AI Cognitive Index <span>(연령 규준 · 평균 100, SD 15)</span></p>
+          <div id="iq-score" class="iq-score">—</div>
+          <p id="reliability-line" class="core-score">신뢰도 <span id="reliability-value">—</span></p>
+          <p id="iq-level" class="iq-level"></p>
+          <p id="iq-classification-desc" class="iq-classification-desc"></p>
+        </div>
+
+        <div class="result-stats">
+          <div class="stat">
+            <span class="stat-value" id="stat-correct">0</span>
+            <span class="stat-label">정답</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="stat-total">16</span>
+            <span class="stat-label">총 문항</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value" id="stat-time">—</span>
+            <span class="stat-label">소요 시간</span>
+          </div>
+          <div class="stat reliability-stat">
+            <span class="stat-value" id="stat-percentile">—</span>
+            <span class="stat-label">백분위</span>
+          </div>
+        </div>
+
+        <div class="analysis-section">
+          <h3>종합 분석</h3>
+          <p id="result-summary" class="analysis-text"></p>
+        </div>
+
+        <div class="analysis-section">
+          <h3>영역별 점수</h3>
+          <div id="domain-bars"></div>
+        </div>
+
+        <div class="analysis-section aca-tier-bars">
+          <h3>난이도별 수행</h3>
+          <div id="tier-bars"></div>
+        </div>
+
+        <div class="analysis-grid">
+          <div class="analysis-box strength-box">
+            <h4>💪 강점</h4>
+            <p id="strength-text"></p>
+          </div>
+          <div class="analysis-box weakness-box">
+            <h4>📌 약점</h4>
+            <p id="weakness-text"></p>
+          </div>
+        </div>
+
+        <div class="analysis-section">
+          <h3>연령대 내 순위 해석</h3>
+          <p id="comparison-text" class="analysis-text"></p>
+        </div>
+
+        <div class="analysis-section recommendations">
+          <h3>훈련 권장</h3>
+          <ul id="recommendations-list" class="recommendations-list"></ul>
+        </div>
+
+        <div class="analysis-section">
+          <h3>인지 프로필</h3>
+          <div id="cognitive-profile" class="cognitive-profile"></div>
+        </div>
+
+        <div class="result-actions">
+          <button id="btn-retry" class="btn btn-primary">다시 검사</button>
+          <button id="btn-share" class="btn btn-ghost">결과 공유</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2026 AI Cognitive Assessment · 자기 이해용 AI 인지능력 평가</p>
+  </footer>
+
+  <script src="js/shuffle.js?v=5"></script>
+  <script src="js/insightiq-irt.js?v=5"></script>
+  <script src="js/analysis.js?v=5"></script>
+  <script src="js/aca-config.js?v=5"></script>
+  <script src="js/aca-matrix-engine.js?v=5"></script>
+  <script src="js/aca-generator.js?v=5"></script>
+  <script src="js/aca-analysis.js?v=5"></script>
+  <script src="js/aca-app.js?v=5"></script>
+</body>
+</html>
