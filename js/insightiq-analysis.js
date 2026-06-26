@@ -113,9 +113,8 @@ function getInsightIQStrengthsWeaknesses(indexScores) {
 }
 
 function buildInsightIQSummary(config, compositeIQ, coreIndex, cls, correct, total, percentile) {
-  const exam = config.examName;
   const sub = config.subLabel ? ` (${config.subLabel} · ${config.ageRange})` : ` (${config.ageRange})`;
-  return `<strong>${exam}</strong>${sub} 검사 결과, ` +
+  return `<strong>InsightIQ</strong>${sub} 검사 결과, ` +
     `<strong>종합 IQ ${compositeIQ}</strong>점으로 「${cls.label}」에 해당합니다(백분위 ${percentile}%). ` +
     `핵심 능력 지수(언어·지각)는 <strong>${coreIndex}</strong>점입니다. ` +
     `총 ${total}문항 중 ${correct}문항 정답. ` +
@@ -158,16 +157,15 @@ function buildInsightIQWeaknessText(weaknesses) {
 }
 
 function buildInsightIQComparison(config, compositeIQ, coreIndex, percentile) {
-  const exam = config.examName;
   const age = config.ageRange;
   const coreDiff = coreIndex - compositeIQ;
   let coreNote = '';
   if (coreDiff >= 5) coreNote = ' 핵심 능력 지수가 종합 IQ보다 높아, 작업기억·처리속도 영향이 상대적으로 낮을 수 있습니다.';
   else if (coreDiff <= -5) coreNote = ' 종합 IQ가 핵심 능력 지수보다 높아, 작업기억·처리속도에서 추가 점수를 얻었을 수 있습니다.';
 
-  if (compositeIQ >= 120) return `${exam} 연령 규준(${age}) 기준 상위권입니다.${coreNote}`;
-  if (compositeIQ >= 90) return `${exam} 연령 규준(${age}) 기준 평균 범위에 해당합니다.${coreNote}`;
-  return `${exam} 연령 규준(${age}) 기준 보완이 필요한 영역이 있을 수 있습니다. 전문가 상담을 권장합니다.${coreNote}`;
+  if (compositeIQ >= 120) return `InsightIQ 연령 규준(${age}) 기준 상위권입니다.${coreNote}`;
+  if (compositeIQ >= 90) return `InsightIQ 연령 규준(${age}) 기준 평균 범위에 해당합니다.${coreNote}`;
+  return `InsightIQ 연령 규준(${age}) 기준 보완이 필요한 영역이 있을 수 있습니다. 전문가 상담을 권장합니다.${coreNote}`;
 }
 
 function buildInsightIQProfile(indexScores, speedLevel) {
@@ -217,7 +215,6 @@ function buildInsightIQCATReport(catResults, elapsed, config) {
   const speedLevel = getSpeedScore(elapsed, config.timeLimit, correct, total);
 
   const seIQ = Math.round(se * 15);
-  const exam = config.examName;
 
   return {
     isInsightIQ: true,
@@ -239,7 +236,7 @@ function buildInsightIQCATReport(catResults, elapsed, config) {
     weaknesses,
     speedLevel,
     recommendations: recs[performanceTier],
-    summary: `<strong>${exam}</strong> IRT·CAT 적응형 검사 결과, ` +
+    summary: `<strong>InsightIQ</strong> IRT·CAT 적응형 검사 결과, ` +
       `<strong>종합 IQ ${compositeIQ}</strong>점(θ=${theta.toFixed(2)}, SE≈${seIQ} IQ)으로 「${classification.label}」에 해당합니다(백분위 ${percentile}%). ` +
       `핵심 능력 지수(언어·시공간·유동) <strong>${coreIndex}</strong>점. ` +
       `총 ${total}문항(은행 ${bankSize}문항 중 적응 출제). ` +

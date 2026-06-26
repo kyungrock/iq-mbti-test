@@ -67,6 +67,10 @@
     startTime: null
   };
 
+  function getLevelDisplayLabel(level) {
+    return level.subLabel || level.label || 'InsightIQ';
+  }
+
   function initAgeSelector() {
     const levels = getAllAgeLevels();
     Object.values(levels).forEach(level => {
@@ -76,9 +80,7 @@
       card.dataset.level = level.id;
       card.setAttribute('role', 'radio');
       card.setAttribute('aria-checked', 'false');
-      const displayLabel = level.subLabel
-        ? `${level.label} · ${level.subLabel}`
-        : level.label;
+      const displayLabel = getLevelDisplayLabel(level);
       const meta = level.isInsightIQ
         ? (level.useCAT
           ? `CAT 적응형 · 최대 ${level.catMaxItems}문항 · IRT`
@@ -108,9 +110,7 @@
     });
 
     els.btnStart.disabled = false;
-    els.btnStart.textContent = levelConfig.isInsightIQ
-      ? `${levelConfig.examName} 검사 시작`
-      : '테스트 시작';
+    els.btnStart.textContent = levelConfig.isInsightIQ ? 'InsightIQ 검사 시작' : '테스트 시작';
   }
 
   function showScreen(name) {
@@ -280,21 +280,20 @@
   }
 
   function showInsightIQResults(report, config) {
-    const exam = config.examName;
     els.resultIqLabel.innerHTML = report.isCAT
-      ? `종합 IQ <span class="result-norm">(IRT·CAT 추정 · ${exam})</span>`
-      : `종합 IQ <span class="result-norm">(${exam})</span>`;
+      ? '종합 IQ <span class="result-norm">(IRT·CAT 추정 · InsightIQ)</span>'
+      : '종합 IQ <span class="result-norm">(InsightIQ)</span>';
     els.coreScore.hidden = false;
     els.coreValue.textContent = report.coreIndex;
     els.iqIndexSection.hidden = false;
     els.iqDetailSection.hidden = false;
     els.categorySection.hidden = true;
     els.profileSectionTitle.textContent = report.isCAT
-      ? `${exam} 5영역 프로필 (IRT)`
-      : `${exam} 4영역 프로필`;
+      ? 'InsightIQ 5영역 프로필 (IRT)'
+      : 'InsightIQ 4영역 프로필';
     document.querySelector('#iq-index-section h3').textContent = report.isCAT
-      ? `${exam} 5영역 점수`
-      : `${exam} 4영역 점수`;
+      ? 'InsightIQ 5영역 점수'
+      : 'InsightIQ 4영역 점수';
     document.querySelector('#iq-detail-section h3').textContent = `${exam} 세부 항목별 성적`;
 
     els.iqScore.textContent = report.compositeIQ;
@@ -348,9 +347,7 @@
       report = buildProfessionalReport(selectedLevel, questions, state.answers, elapsed, levelConfig);
     }
 
-    const badgeLabel = levelConfig.subLabel
-      ? `${levelConfig.label} · ${levelConfig.subLabel}`
-      : levelConfig.label;
+    const badgeLabel = getLevelDisplayLabel(levelConfig);
     els.resultAgeBadge.innerHTML = `${levelConfig.icon} ${badgeLabel} · ${levelConfig.ageRange}`;
     els.statCorrect.textContent = report.correct;
     els.statTotal.textContent = report.total;
@@ -408,9 +405,7 @@
 
     questionStartTime = Date.now();
 
-    els.testLevelChip.textContent = levelConfig.subLabel
-      ? `${levelConfig.icon} ${levelConfig.label} · ${levelConfig.subLabel}`
-      : `${levelConfig.icon} ${levelConfig.label}`;
+    els.testLevelChip.textContent = `${levelConfig.icon} ${getLevelDisplayLabel(levelConfig)}`;
     showScreen('test');
     startTimer();
     renderQuestion();
