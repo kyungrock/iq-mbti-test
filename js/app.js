@@ -24,7 +24,10 @@
     questionVisual: document.getElementById('question-visual'),
     options: document.getElementById('options'),
     resultAgeBadge: document.getElementById('result-age-badge'),
+    resultIqLabel: document.getElementById('result-iq-label'),
     iqScore: document.getElementById('iq-score'),
+    gaiScore: document.getElementById('gai-score'),
+    gaiValue: document.getElementById('gai-value'),
     iqLevel: document.getElementById('iq-level'),
     iqClassificationDesc: document.getElementById('iq-classification-desc'),
     statCorrect: document.getElementById('stat-correct'),
@@ -32,9 +35,16 @@
     statTime: document.getElementById('stat-time'),
     statPercentile: document.getElementById('stat-percentile'),
     resultSummary: document.getElementById('result-summary'),
+    kwaisIndexSection: document.getElementById('kwais-index-section'),
+    kwaisIndexBars: document.getElementById('kwais-index-bars'),
+    profileSectionTitle: document.getElementById('profile-section-title'),
     domainBars: document.getElementById('domain-bars'),
     cognitiveProfile: document.getElementById('cognitive-profile'),
+    categorySection: document.getElementById('category-section'),
+    categorySectionTitle: document.getElementById('category-section-title'),
     categoryBars: document.getElementById('category-bars'),
+    kwaisSubtestSection: document.getElementById('kwais-subtest-section'),
+    kwaisSubtestBars: document.getElementById('kwais-subtest-bars'),
     strengthText: document.getElementById('strength-text'),
     weaknessText: document.getElementById('weakness-text'),
     comparisonText: document.getElementById('comparison-text'),
@@ -55,19 +65,23 @@
   };
 
   function initAgeSelector() {
-    Object.values(AGE_LEVELS).forEach(level => {
+    const levels = getAllAgeLevels();
+    Object.values(levels).forEach(level => {
       const card = document.createElement('button');
       card.type = 'button';
-      card.className = 'age-level-card';
+      card.className = 'age-level-card' + (level.isKwais ? ' kwais-card' : '');
       card.dataset.level = level.id;
       card.setAttribute('role', 'radio');
       card.setAttribute('aria-checked', 'false');
+      const meta = level.isKwais
+        ? `${level.questionCount}문항 · ${level.timeLimit}분 · 4지표`
+        : `${level.questionCount}문항 · ${level.timeLimit}분`;
       card.innerHTML = `
         <span class="age-level-icon">${level.icon}</span>
         <span class="age-level-label">${level.label}</span>
         <span class="age-level-age">${level.ageRange}</span>
         <span class="age-level-desc">${level.description}</span>
-        <span class="age-level-meta">${level.questionCount}문항 · ${level.timeLimit}분</span>
+        <span class="age-level-meta">${meta}</span>
       `;
       card.addEventListener('click', () => selectLevel(level.id));
       els.ageLevels.appendChild(card);
@@ -76,7 +90,7 @@
 
   function selectLevel(levelId) {
     selectedLevel = levelId;
-    levelConfig = AGE_LEVELS[levelId];
+    levelConfig = getAllAgeLevels()[levelId];
     totalTime = levelConfig.timeLimit * 60;
 
     els.ageLevels.querySelectorAll('.age-level-card').forEach(card => {
@@ -86,6 +100,7 @@
     });
 
     els.btnStart.disabled = false;
+    els.btnStart.textContent = levelConfig.isKwais ? 'K-WAIS-IV 검사 시작' : '테스트 시작';
   }
 
   function showScreen(name) {
@@ -120,13 +135,23 @@
     else if (state.timeLeft <= 300) els.timer.classList.add('warning');
   }
 
+  function getQuestionBadge(q) {
+    if (q.index && q.subtest) {
+      const idxName = KWAIS_INDICES[q.index]?.name || q.index;
+      return `${q.subtest} · ${idxName}`;
+    }
+    return CATEGORY_LABELS[q.category] || q.category;
+  }
+
   function renderQuestion() {
     const q = questions[state.currentIndex];
     const progress = ((state.currentIndex + 1) / questions.length) * 100;
 
     els.progressFill.style.width = `${progress}%`;
     els.progressText.textContent = `${state.currentIndex + 1} / ${questions.length}`;
-    els.categoryBadge.textContent = CATEGORY_LABELS[q.category] || q.category;
+    els.categoryBadge.textContent = getQuestionBadge(q);
+    if (levelConfig.isKwais) els.categoryBadge.classList.add('kwais-badge');
+    else els.categoryBadge.classList.remove('kwais-badge');
     els.questionText.textContent = q.text;
 
     if (q.visual) {
@@ -163,16 +188,17 @@
     });
   }
 
-  function renderBarChart(container, entries, labelFn) {
+  function renderBarChart(container, entries, labelFn, showScore) {
     container.innerHTML = '';
     entries.forEach(([key, stats]) => {
       const pct = Math.round((stats.correct / stats.total) * 100);
       const row = document.createElement('div');
       row.className = 'category-bar-row';
+      const scoreText = showScore && stats.score != null ? ` · 지표 ${stats.score}점` : '';
       row.innerHTML = `
         <div class="category-bar-header">
-          <span>${labelFn(key)}</span>
-          <span>${stats.correct}/${stats.total} (${pct}%)</span>
+          <span>${labelFn(key, stats)}</span>
+          <span>${stats.correct}/${stats.total} (${pct}%)${scoreText}</span>
         </div>
         <div class="category-bar-track">
           <div class="category-bar-fill" style="width: 0%" data-width="${pct}%"></div>
@@ -187,34 +213,96 @@
     });
   }
 
-  function showResults() {
-    const elapsed = Math.round((Date.now() - state.startTime) / 1000);
-    const report = buildProfessionalReport(
-      selectedLevel, questions, state.answers, elapsed, levelConfig
-    );
+  function showStandardResults(report) {
+    els.resultIqLabel.innerHTML = '추정 IQ <span class="result-norm">(연령 규준)</span>';
+    els.gaiScore.hidden = true;
+    els.kwaisIndexSection.hidden = true;
+    els.kwaisSubtestSection.hidden = true;
+    els.categorySection.hidden = false;
+    els.profileSectionTitle.textContent = '인지 영역 프로필 (CHC)';
+    els.categorySectionTitle.textContent = '세부 영역별 성적';
 
-    els.resultAgeBadge.innerHTML = `${levelConfig.icon} ${levelConfig.label} · ${levelConfig.ageRange}`;
     els.iqScore.textContent = report.iq;
     els.iqLevel.textContent = report.classification.label;
     els.iqClassificationDesc.textContent = report.classification.desc;
-    els.statCorrect.textContent = report.correct;
-    els.statTotal.textContent = report.total;
-    els.statTime.textContent = formatTime(elapsed);
-    els.statPercentile.textContent = `${report.percentile}%`;
-
-    els.resultSummary.innerHTML = report.summary;
 
     renderBarChart(els.domainBars, Object.entries(report.domainStats), key =>
       DOMAIN_LABELS[key] || key
     );
 
-    els.cognitiveProfile.innerHTML = report.cognitiveProfile
-      .map(p => `<p class="profile-item">${p}</p>`)
-      .join('');
-
     renderBarChart(els.categoryBars, Object.entries(report.categoryStats), key =>
       CATEGORY_LABELS[key] || key
     );
+  }
+
+  function showKwaisResults(report) {
+    els.resultIqLabel.innerHTML = 'FSIQ <span class="result-norm">(전체지능지수 · K-WAIS-IV)</span>';
+    els.gaiScore.hidden = false;
+    els.gaiValue.textContent = report.gai;
+    els.kwaisIndexSection.hidden = false;
+    els.kwaisSubtestSection.hidden = false;
+    els.categorySection.hidden = true;
+    els.profileSectionTitle.textContent = 'K-WAIS-IV 지표 프로필';
+    els.categorySectionTitle.textContent = '세부 영역별 성적';
+
+    els.iqScore.textContent = report.fsiq;
+    els.iqLevel.textContent = report.classification.label;
+    els.iqClassificationDesc.textContent = report.classification.desc;
+
+    const indexEntries = Object.entries(report.indexScores).map(([key, s]) => [
+      key, { correct: s.correct, total: s.total, score: s.score, info: s.info }
+    ]);
+    renderBarChart(
+      els.kwaisIndexBars,
+      indexEntries,
+      (key, stats) => stats.info.fullName,
+      true
+    );
+
+    renderBarChart(
+      els.domainBars,
+      indexEntries,
+      (key, stats) => `${stats.info.name} (${stats.info.desc.split(',')[0]})`,
+      true
+    );
+
+    els.kwaisSubtestBars.innerHTML = '';
+    report.subtestAnalysis.forEach(st => {
+      const row = document.createElement('div');
+      row.className = 'category-bar-row';
+      row.innerHTML = `
+        <div class="category-bar-header">
+          <span>${st.label}</span>
+          <span>${st.correct}/${st.total} (${st.pct}%)</span>
+        </div>
+        <div class="category-bar-track">
+          <div class="category-bar-fill kwais-fill" style="width: ${st.pct}%"></div>
+        </div>
+      `;
+      els.kwaisSubtestBars.appendChild(row);
+    });
+  }
+
+  function showResults() {
+    const elapsed = Math.round((Date.now() - state.startTime) / 1000);
+    const isKwais = levelConfig.isKwais;
+    const report = isKwais
+      ? buildKwaisReport(questions, state.answers, elapsed, levelConfig)
+      : buildProfessionalReport(selectedLevel, questions, state.answers, elapsed, levelConfig);
+
+    els.resultAgeBadge.innerHTML = `${levelConfig.icon} ${levelConfig.label} · ${levelConfig.ageRange}`;
+    els.statCorrect.textContent = report.correct;
+    els.statTotal.textContent = report.total;
+    els.statTime.textContent = formatTime(elapsed);
+    els.statPercentile.textContent = `${report.percentile}%`;
+    els.resultSummary.innerHTML = report.summary;
+
+    if (isKwais) showKwaisResults(report);
+    else showStandardResults(report);
+
+    els.cognitiveProfile.innerHTML = report.cognitiveProfile
+      .map(p => `<p class="profile-item">${p}</p>`)
+      .join('');
 
     els.strengthText.textContent = report.strengthText;
     els.weaknessText.textContent = report.weaknessText;
@@ -279,6 +367,7 @@
     levelConfig = null;
     questions = [];
     els.btnStart.disabled = true;
+    els.btnStart.textContent = '테스트 시작';
     els.ageLevels.querySelectorAll('.age-level-card').forEach(card => {
       card.classList.remove('selected');
       card.setAttribute('aria-checked', 'false');
@@ -287,9 +376,10 @@
   });
 
   els.btnShare.addEventListener('click', async () => {
-    const iq = els.iqScore.textContent;
+    const score = els.iqScore.textContent;
     const level = levelConfig ? levelConfig.label : '';
-    const text = `[${level}] IQ 테스트 결과: 추정 IQ ${iq}점 (연령 규준). 당신도 도전해 보세요!`;
+    const label = levelConfig?.isKwais ? 'FSIQ' : '추정 IQ';
+    const text = `[${level}] IQ 테스트 결과: ${label} ${score}점. 당신도 도전해 보세요!`;
     try {
       if (navigator.share) {
         await navigator.share({ title: 'IQ 테스트 결과', text });
@@ -298,6 +388,6 @@
         els.btnShare.textContent = '복사됨!';
         setTimeout(() => { els.btnShare.textContent = '결과 공유'; }, 2000);
       }
-    } catch (_) { /* 사용자 취소 */ }
+    } catch (_) {}
   });
 })();

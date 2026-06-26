@@ -28,25 +28,24 @@
     <!-- 시작 화면 -->
     <section id="screen-start" class="screen active">
       <div class="card hero-card">
-        <div class="hero-badge">연령별 맞춤 · CHC 인지 분석</div>
+        <div class="hero-badge">연령별 맞춤 · K-WAIS-IV · CHC 분석</div>
         <h1>연령에 맞는<br>IQ 테스트</h1>
         <p class="hero-desc">
-          유치원부터 성인까지 <strong>5단계 연령 규준</strong>으로 측정합니다.
-          매번 <strong>35문항 풀</strong>에서 15문항이 랜덤 출제됩니다.
-          CHC(Cattell-Horn-Carroll) 이론 기반 4대 인지 영역 분석 리포트를 제공합니다.
+          유치원부터 성인까지 <strong>5단계 연령 규준</strong> + <strong>K-WAIS-IV</strong>(16~69세)를 제공합니다.
+          K-WAIS-IV는 언어이해·지각추론·작업기억·처리속도 4지표와 FSIQ/GAI를 산출합니다.
         </p>
         <ul class="feature-list">
           <li>
-            <span class="feature-icon">👶</span>
-            <span>연령별 전용 문항 (각 15문항)</span>
+            <span class="feature-icon">📋</span>
+            <span>K-WAIS-IV: 10핵심 소검사 · 32문항</span>
           </li>
           <li>
             <span class="feature-icon">📊</span>
-            <span>Wechsler 기준 IQ 등급 분류</span>
+            <span>FSIQ · GAI · 4지표 점수 (평균 100, SD 15)</span>
           </li>
           <li>
             <span class="feature-icon">🔬</span>
-            <span>강점·약점·학습 권장 분석</span>
+            <span>매 회 랜덤 출제 · 소검사별 분석</span>
           </li>
         </ul>
 
@@ -57,8 +56,8 @@
 
         <button id="btn-start" class="btn btn-primary btn-lg" disabled>테스트 시작</button>
         <p class="disclaimer">
-          ※ 본 테스트는 오락 및 자기 이해 목적이며, Wechsler·K-WISC 등 공인 검사를 대체하지 않습니다.
-          정확한 평가는 전문 심리검사 기관을 이용해 주세요.
+          ※ 본 테스트는 오락 및 자기 이해 목적이며, K-WAIS-IV·K-WISC 등 공인 웩슬러 검사를 대체하지 않습니다.
+          K-WAIS-IV 정식 실시는 임상심리 전문가에게 의뢰해 주세요.
         </p>
       </div>
     </section>
@@ -98,8 +97,9 @@
         <div class="result-age-badge" id="result-age-badge"></div>
 
         <div class="result-header">
-          <p class="result-label">추정 IQ <span class="result-norm">(연령 규준)</span></p>
+          <p class="result-label" id="result-iq-label">추정 IQ <span class="result-norm">(연령 규준)</span></p>
           <div id="iq-score" class="iq-score">—</div>
+          <p id="gai-score" class="gai-score" hidden>GAI <span id="gai-value">—</span></p>
           <p id="iq-level" class="iq-level"></p>
           <p id="iq-classification-desc" class="iq-classification-desc"></p>
         </div>
@@ -128,15 +128,25 @@
           <p id="result-summary" class="analysis-text"></p>
         </div>
 
+        <div class="analysis-section" id="kwais-index-section" hidden>
+          <h3>K-WAIS-IV 4지표 점수</h3>
+          <div id="kwais-index-bars"></div>
+        </div>
+
         <div class="analysis-section">
-          <h3>인지 영역 프로필 (CHC)</h3>
+          <h3 id="profile-section-title">인지 영역 프로필 (CHC)</h3>
           <div id="domain-bars"></div>
           <div id="cognitive-profile" class="cognitive-profile"></div>
         </div>
 
-        <div class="category-breakdown">
-          <h3>세부 영역별 성적</h3>
+        <div class="category-breakdown" id="category-section">
+          <h3 id="category-section-title">세부 영역별 성적</h3>
           <div id="category-bars"></div>
+        </div>
+
+        <div class="category-breakdown" id="kwais-subtest-section" hidden>
+          <h3>K-WAIS-IV 소검사별 성적</h3>
+          <div id="kwais-subtest-bars"></div>
         </div>
 
         <div class="analysis-grid">
@@ -175,7 +185,10 @@
   <script src="js/shuffle.js"></script>
   <script src="js/questions.js"></script>
   <script src="js/questions-extra.js"></script>
+  <script src="js/kwais-config.js"></script>
+  <script src="js/kwais-questions.js"></script>
   <script src="js/analysis.js"></script>
+  <script src="js/kwais-analysis.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

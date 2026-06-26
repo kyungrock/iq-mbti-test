@@ -248,6 +248,42 @@ body {
   background: rgba(108, 140, 255, 0.12);
 }
 
+.age-level-card.kwais-card {
+  border-color: rgba(251, 191, 36, 0.25);
+  background: rgba(251, 191, 36, 0.04);
+}
+
+.age-level-card.kwais-card:hover {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.age-level-card.kwais-card.selected {
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.category-badge.kwais-badge {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+.gai-score {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-top: 0.35rem;
+}
+
+.gai-score span {
+  font-family: var(--mono);
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.kwais-fill {
+  background: linear-gradient(90deg, #fbbf24, #6c8cff) !important;
+}
+
 .age-level-icon {
   font-size: 1.6rem;
   margin-bottom: 0.15rem;

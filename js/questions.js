@@ -56,6 +56,15 @@ const AGE_LEVELS = {
   }
 };
 
+// K-WAIS-IV는 kwais-config.js에서 로드 (AGE_LEVELS에 병합)
+function getAllAgeLevels() {
+  const levels = { ...AGE_LEVELS };
+  if (typeof KWAIS_CONFIG !== 'undefined') {
+    levels.kwais = KWAIS_CONFIG;
+  }
+  return levels;
+}
+
 const DOMAIN_LABELS = {
   fluid: '유동적 추론 (Gf)',
   crystallized: '결정적 지능 (Gc)',

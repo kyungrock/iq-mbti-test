@@ -1,0 +1,173 @@
+function ratioToIndexScore(ratio) {
+  const z = (ratio - 0.62) / 0.17;
+  return Math.max(55, Math.min(145, Math.round(100 + 15 * z)));
+}
+
+function getKwaisClassification(score) {
+  return KWAIS_CLASSIFICATIONS.find(c => score >= c.min) || KWAIS_CLASSIFICATIONS[KWAIS_CLASSIFICATIONS.length - 1];
+}
+
+function getIndexStats(questions, answers) {
+  const stats = {};
+  Object.keys(KWAIS_INDICES).forEach(k => {
+    stats[k] = { correct: 0, total: 0, subtests: {} };
+  });
+
+  questions.forEach((q, i) => {
+    const idx = q.index;
+    if (!stats[idx]) return;
+    stats[idx].total++;
+    if (answers[i] === q.answer) stats[idx].correct++;
+
+    if (!stats[idx].subtests[q.subtest]) {
+      stats[idx].subtests[q.subtest] = { correct: 0, total: 0 };
+    }
+    stats[idx].subtests[q.subtest].total++;
+    if (answers[i] === q.answer) stats[idx].subtests[q.subtest].correct++;
+  });
+
+  return stats;
+}
+
+function buildKwaisReport(questions, answers, elapsed, config) {
+  const correct = answers.filter((a, i) => a === questions[i].answer).length;
+  const total = questions.length;
+  const indexStats = getIndexStats(questions, answers);
+
+  const indexScores = {};
+  Object.entries(indexStats).forEach(([key, s]) => {
+    const ratio = s.total > 0 ? s.correct / s.total : 0;
+    indexScores[key] = {
+      score: ratioToIndexScore(ratio),
+      correct: s.correct,
+      total: s.total,
+      ratio,
+      subtests: s.subtests,
+      info: KWAIS_INDICES[key]
+    };
+  });
+
+  const fsiq = Math.round(
+    (indexScores.VCI.score + indexScores.PRI.score + indexScores.WMI.score + indexScores.PSI.score) / 4
+  );
+  const gai = Math.round((indexScores.VCI.score + indexScores.PRI.score) / 2);
+  const classification = getKwaisClassification(fsiq);
+  const percentile = Math.round(normCdf((fsiq - 100) / 15) * 100);
+
+  const subtestStats = getSubtestStats(questions, answers);
+  const { strengths, weaknesses } = getKwaisStrengthsWeaknesses(indexScores);
+  const speedLevel = getSpeedScore(elapsed, config.timeLimit, correct, total);
+  const performanceTier = fsiq >= 115 ? 'high' : fsiq >= 90 ? 'mid' : 'low';
+
+  return {
+    isKwais: true,
+    fsiq,
+    gai,
+    iq: fsiq,
+    indexScores,
+    classification,
+    percentile,
+    correct,
+    total,
+    elapsed,
+    subtestStats,
+    strengths,
+    weaknesses,
+    speedLevel,
+    recommendations: AGE_RECOMMENDATIONS.adult[performanceTier],
+    summary: buildKwaisSummary(fsiq, gai, classification, correct, total, percentile),
+    indexAnalysis: buildIndexAnalysis(indexScores),
+    subtestAnalysis: buildSubtestAnalysis(subtestStats),
+    strengthText: buildKwaisStrengthText(strengths),
+    weaknessText: buildKwaisWeaknessText(weaknesses),
+    comparisonText: buildKwaisComparison(fsiq, gai, percentile),
+    cognitiveProfile: buildKwaisProfile(indexScores, speedLevel)
+  };
+}
+
+function getSubtestStats(questions, answers) {
+  const stats = {};
+  questions.forEach((q, i) => {
+    const key = q.subtest;
+    if (!stats[key]) stats[key] = { correct: 0, total: 0, index: q.index };
+    stats[key].total++;
+    if (answers[i] === q.answer) stats[key].correct++;
+  });
+  return stats;
+}
+
+function getKwaisStrengthsWeaknesses(indexScores) {
+  const entries = Object.entries(indexScores).map(([key, s]) => ({
+    key,
+    score: s.score,
+    name: s.info.name
+  }));
+  entries.sort((a, b) => b.score - a.score);
+  return {
+    strengths: entries.filter(e => e.score >= 110).slice(0, 2),
+    weaknesses: entries.filter(e => e.score < 90).slice(-2).reverse()
+  };
+}
+
+function buildKwaisSummary(fsiq, gai, cls, correct, total, percentile) {
+  return `K-WAIS-IV 구조 기반 검사 결과, <strong>FSIQ(전체지능지수) ${fsiq}</strong>점으로 ` +
+    `「${cls.label}」에 해당합니다(백분위 ${percentile}%). ` +
+    `GAI(일반능력지수, VCI+PRI)는 <strong>${gai}</strong>점입니다. ` +
+    `총 ${total}문항 중 ${correct}문항 정답. ` +
+    `※ 공인 K-WAIS-IV 실시·채점과는 다르며 참고용입니다.`;
+}
+
+function buildIndexAnalysis(indexScores) {
+  return Object.entries(indexScores).map(([key, s]) => {
+    const pct = Math.round(s.ratio * 100);
+    let interpretation;
+    if (s.score >= 120) interpretation = `${s.info.name} 능력이 매우 우수합니다.`;
+    else if (s.score >= 100) interpretation = `${s.info.name} 능력이 평균 이상입니다.`;
+    else if (s.score >= 85) interpretation = `${s.info.name} 능력이 평균 범위입니다.`;
+    else interpretation = `${s.info.name} 영역의 보완이 도움이 될 수 있습니다.`;
+    return { key, s, pct, interpretation };
+  });
+}
+
+function buildSubtestAnalysis(subtestStats) {
+  return Object.entries(subtestStats)
+    .map(([name, s]) => ({
+      name,
+      label: KWAIS_SUBTEST_LABELS[name] || name,
+      index: s.index,
+      correct: s.correct,
+      total: s.total,
+      pct: Math.round((s.correct / s.total) * 100)
+    }))
+    .sort((a, b) => b.pct - a.pct);
+}
+
+function buildKwaisStrengthText(strengths) {
+  if (!strengths.length) return '4개 지표가 고르게 나타났습니다.';
+  return strengths.map(s => `${s.name} 지표 (${s.score}점)`).join(', ') + '에서 강점이 보입니다.';
+}
+
+function buildKwaisWeaknessText(weaknesses) {
+  if (!weaknesses.length) return '특별히 취약한 지표가 관찰되지 않았습니다.';
+  return weaknesses.map(s => `${s.name} 지표 (${s.score}점)`).join(', ') + ' 영역 보완을 권장합니다.';
+}
+
+function buildKwaisComparison(fsiq, gai, percentile) {
+  const gaiDiff = gai - fsiq;
+  let gaiNote = '';
+  if (gaiDiff >= 5) gaiNote = ' GAI가 FSIQ보다 높아, 작업기억·처리속도 요인의 영향이 상대적으로 낮을 수 있습니다.';
+  else if (gaiDiff <= -5) gaiNote = ' FSIQ가 GAI보다 높아, 작업기억·처리속도에서 추가 점수를 얻었을 수 있습니다.';
+
+  if (fsiq >= 120) return `K-WAIS-IV 연령 규준(16~69세) 기준 상위권입니다.${gaiNote}`;
+  if (fsiq >= 90) return `K-WAIS-IV 연령 규준 기준 평균 범위에 해당합니다.${gaiNote}`;
+  return `K-WAIS-IV 연령 규준 기준 보완이 필요한 영역이 있을 수 있습니다. 전문가 실시를 권장합니다.${gaiNote}`;
+}
+
+function buildKwaisProfile(indexScores, speedLevel) {
+  const parts = Object.entries(indexScores).map(([key, s]) => {
+    const pct = Math.round(s.ratio * 100);
+    return `<strong>${s.info.fullName}</strong> (${s.correct}/${s.total}, 지표 ${s.score}점): ${s.info.desc}`;
+  });
+  parts.push(`<strong>처리속도 수행</strong>: ${DOMAIN_DESCRIPTIONS.speed[speedLevel]}`);
+  return parts;
+}
