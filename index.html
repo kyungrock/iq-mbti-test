@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IQ 테스트 | 연령별 지능지수 측정</title>
-  <meta name="description" content="유치원부터 성인까지 연령별 맞춤 IQ 테스트. CHC 이론 기반 인지 영역 분석 리포트 제공">
+  <title>InsightIQ | 연령별 지능지수 측정</title>
+  <meta name="description" content="InsightIQ — 유치원부터 성인까지 연령별 맞춤 IQ 테스트. IRT·CAT 적응형 및 CHC 인지 영역 분석">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -16,10 +16,10 @@
   <header class="site-header site-header-nav">
     <a href="index.html" class="logo">
       <span class="logo-icon">🧠</span>
-      <span class="logo-text">IQ Test</span>
+      <span class="logo-text">InsightIQ</span>
     </a>
     <nav class="site-nav">
-      <a href="index.html" class="active">IQ 테스트</a>
+      <a href="index.html" class="active">InsightIQ</a>
       <a href="mbti.html">MBTI 검사</a>
     </nav>
   </header>
@@ -28,24 +28,24 @@
     <!-- 시작 화면 -->
     <section id="screen-start" class="screen active">
       <div class="card hero-card">
-        <div class="hero-badge">K-WPPSI · K-WISC · K-WAIS · CHC 분석</div>
-        <h1>연령에 맞는<br>IQ 테스트</h1>
+        <div class="hero-badge">InsightIQ · IRT·CAT · CHC 분석</div>
+        <h1>InsightIQ<br>연령별 IQ 테스트</h1>
         <p class="hero-desc">
-          <strong>유치원(K-WPPSI-IV)</strong>부터 <strong>고등(K-WISC-V)</strong>, <strong>성인(K-WAIS-IV)</strong>까지
-          웩슬러 4지표 구조로 FSIQ·GAI를 산출합니다. 성인 간편(CHC) 모드도 선택할 수 있습니다.
+          성인 <strong>InsightIQ</strong>는 <strong>IRT·CAT 적응형</strong>으로 5영역(언어이해·시공간·유동추론·작업기억·처리속도)을 측정합니다.
+          500+ 문항 은행에서 매 회 새로운 문항이 생성·출제됩니다.
         </p>
         <ul class="feature-list">
           <li>
             <span class="feature-icon">🌱</span>
-            <span>유치원~고등: K-WPPSI / K-WISC · 4지표 · 소검사별 분석</span>
+            <span>유치원~고등: InsightIQ 4영역 검사</span>
           </li>
           <li>
             <span class="feature-icon">📋</span>
-            <span>성인 K-WAIS-IV: 32문항 · FSIQ · GAI (평균 100, SD 15)</span>
+            <span>성인 InsightIQ: CAT 적응형 · IRT 추정 · IQ 80~160</span>
           </li>
           <li>
             <span class="feature-icon">🔬</span>
-            <span>매 회 랜덤 출제 · 연령별 맞춤 해석</span>
+            <span>정답 시 난이도 상승 · 500+ 절차적 문항 생성</span>
           </li>
         </ul>
 
@@ -56,8 +56,8 @@
 
         <button id="btn-start" class="btn btn-primary btn-lg" disabled>테스트 시작</button>
         <p class="disclaimer">
-          ※ 본 테스트는 오락 및 자기 이해 목적이며, K-WPPSI·K-WISC·K-WAIS 등 공인 웩슬러 검사를 대체하지 않습니다.
-          정식 실시는 임상심리 전문가에게 의뢰해 주세요.
+          ※ InsightIQ는 오락 및 자기 이해 목적의 온라인 테스트이며, 공인 임상 지능검사를 대체하지 않습니다.
+          정확한 평가가 필요하면 임상심리 전문가에게 상담해 주세요.
         </p>
       </div>
     </section>
@@ -99,7 +99,7 @@
         <div class="result-header">
           <p class="result-label" id="result-iq-label">추정 IQ <span class="result-norm">(연령 규준)</span></p>
           <div id="iq-score" class="iq-score">—</div>
-          <p id="gai-score" class="gai-score" hidden>GAI <span id="gai-value">—</span></p>
+          <p id="gai-score" class="gai-score" hidden>핵심 능력 지수 <span id="gai-value">—</span></p>
           <p id="iq-level" class="iq-level"></p>
           <p id="iq-classification-desc" class="iq-classification-desc"></p>
         </div>
@@ -129,7 +129,7 @@
         </div>
 
         <div class="analysis-section" id="kwais-index-section" hidden>
-          <h3>K-WAIS-IV 4지표 점수</h3>
+          <h3>InsightIQ 영역별 점수</h3>
           <div id="kwais-index-bars"></div>
         </div>
 
@@ -145,7 +145,7 @@
         </div>
 
         <div class="category-breakdown" id="kwais-subtest-section" hidden>
-          <h3>K-WAIS-IV 소검사별 성적</h3>
+          <h3>InsightIQ 소검사별 성적</h3>
           <div id="kwais-subtest-bars"></div>
         </div>
 
@@ -179,14 +179,17 @@
   </main>
 
   <footer class="site-footer">
-    <p>© 2026 IQ Test · CHC 이론 기반 자기 이해용 테스트</p>
+    <p>© 2026 InsightIQ · 자기 이해용 온라인 인지 테스트</p>
   </footer>
 
   <script src="js/shuffle.js"></script>
   <script src="js/wechsler-levels.js"></script>
   <script src="js/questions.js"></script>
   <script src="js/questions-extra.js"></script>
+  <script src="js/kwais-irt.js"></script>
+  <script src="js/kwais-generator.js"></script>
   <script src="js/kwais-questions.js"></script>
+  <script src="js/kwais-cat.js"></script>
   <script src="js/wechsler-questions-youth.js"></script>
   <script src="js/analysis.js"></script>
   <script src="js/kwais-analysis.js"></script>

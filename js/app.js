@@ -55,6 +55,9 @@
   let questions = [];
   let levelConfig = null;
   let totalTime = 0;
+  let catSession = null;
+  let questionStartTime = null;
+  let isCATMode = false;
 
   let state = {
     currentIndex: 0,
@@ -77,7 +80,9 @@
         ? `${level.label} · ${level.subLabel}`
         : level.label;
       const meta = level.isWechsler
-        ? `${level.questionCount}문항 · ${level.timeLimit}분 · FSIQ`
+        ? (level.useCAT
+          ? `CAT 적응형 · 최대 ${level.catMaxItems}문항 · IRT`
+          : `${level.questionCount}문항 · ${level.timeLimit}분 · 종합 IQ`)
         : `${level.questionCount}문항 · ${level.timeLimit}분`;
       card.innerHTML = `
         <span class="age-level-icon">${level.icon}</span>
@@ -142,18 +147,26 @@
 
   function getQuestionBadge(q) {
     if (q.index && q.subtest) {
-      const idxName = WECHSLER_INDICES[q.index]?.name || q.index;
-      return `${q.subtest} · ${idxName}`;
+      const domainMap = isCATMode && typeof INSIGHTIQ_DOMAINS !== 'undefined'
+        ? INSIGHTIQ_DOMAINS
+        : WECHSLER_INDICES;
+      const idxName = domainMap[q.index]?.name || q.index;
+      const diffTag = q.difficulty ? ` · Lv${q.difficulty}` : '';
+      return `${q.subtest} · ${idxName}${diffTag}`;
     }
     return CATEGORY_LABELS[q.category] || q.category;
   }
 
   function renderQuestion() {
     const q = questions[state.currentIndex];
-    const progress = ((state.currentIndex + 1) / questions.length) * 100;
+    const progressDenom = isCATMode && catSession ? catSession.maxItems : questions.length;
+    const progressNum = isCATMode && catSession ? catSession.itemCount : state.currentIndex + 1;
+    const progress = (progressNum / progressDenom) * 100;
 
     els.progressFill.style.width = `${progress}%`;
-    els.progressText.textContent = `${state.currentIndex + 1} / ${questions.length}`;
+    els.progressText.textContent = isCATMode && catSession
+      ? catSession.getProgressLabel()
+      : `${state.currentIndex + 1} / ${questions.length}`;
     els.categoryBadge.textContent = getQuestionBadge(q);
     if (levelConfig.isWechsler) els.categoryBadge.classList.add('kwais-badge');
     else els.categoryBadge.classList.remove('kwais-badge');
@@ -181,8 +194,34 @@
       els.options.appendChild(btn);
     });
 
-    els.btnPrev.disabled = state.currentIndex === 0;
-    els.btnNext.textContent = state.currentIndex === questions.length - 1 ? '결과 보기' : '다음';
+    els.btnPrev.disabled = isCATMode || state.currentIndex === 0;
+    const isLast = !isCATMode && state.currentIndex === questions.length - 1;
+    els.btnNext.textContent = isLast ? '결과 보기' : '다음';
+  }
+
+  function advanceCAT() {
+    const q = questions[state.currentIndex];
+    if (state.answers[state.currentIndex] === null) return;
+
+    const timeMs = questionStartTime ? Date.now() - questionStartTime : (q.timeLimitSec || 30) * 1000;
+    catSession.recordResponse(q, state.answers[state.currentIndex], timeMs);
+
+    if (catSession.isComplete()) {
+      finishTest();
+      return;
+    }
+
+    const next = catSession.getNextQuestion();
+    if (!next) {
+      finishTest();
+      return;
+    }
+
+    questions.push(next);
+    state.answers.push(null);
+    state.currentIndex++;
+    questionStartTime = Date.now();
+    renderQuestion();
   }
 
   function selectOption(index) {
@@ -242,14 +281,20 @@
 
   function showWechslerResults(report, config) {
     const exam = config.examName;
-    els.resultIqLabel.innerHTML = `FSIQ <span class="result-norm">(전체지능지수 · ${exam})</span>`;
+    els.resultIqLabel.innerHTML = report.isCAT
+      ? `종합 IQ <span class="result-norm">(IRT·CAT 추정 · ${exam})</span>`
+      : `종합 IQ <span class="result-norm">(${exam})</span>`;
     els.gaiScore.hidden = false;
     els.gaiValue.textContent = report.gai;
     els.kwaisIndexSection.hidden = false;
     els.kwaisSubtestSection.hidden = false;
     els.categorySection.hidden = true;
-    els.profileSectionTitle.textContent = `${exam} 4지표 프로필`;
-    document.querySelector('#kwais-index-section h3').textContent = `${exam} 4지표 점수`;
+    els.profileSectionTitle.textContent = report.isCAT
+      ? `${exam} 5영역 프로필 (IRT)`
+      : `${exam} 4지표 프로필`;
+    document.querySelector('#kwais-index-section h3').textContent = report.isCAT
+      ? `${exam} 5영역 점수`
+      : `${exam} 4지표 점수`;
     document.querySelector('#kwais-subtest-section h3').textContent = `${exam} 소검사별 성적`;
 
     els.iqScore.textContent = report.fsiq;
@@ -293,9 +338,15 @@
   function showResults() {
     const elapsed = Math.round((Date.now() - state.startTime) / 1000);
     const isWechsler = levelConfig.isWechsler;
-    const report = isWechsler
-      ? buildWechslerReport(questions, state.answers, elapsed, levelConfig)
-      : buildProfessionalReport(selectedLevel, questions, state.answers, elapsed, levelConfig);
+    let report;
+
+    if (isWechsler && isCATMode && catSession) {
+      report = buildKwaisCATReport(catSession.getResults(), elapsed, levelConfig);
+    } else if (isWechsler) {
+      report = buildWechslerReport(questions, state.answers, elapsed, levelConfig);
+    } else {
+      report = buildProfessionalReport(selectedLevel, questions, state.answers, elapsed, levelConfig);
+    }
 
     const badgeLabel = levelConfig.subLabel
       ? `${levelConfig.label} · ${levelConfig.subLabel}`
@@ -336,7 +387,16 @@
   function startTest() {
     if (!selectedLevel) return;
 
-    questions = buildIqTest(selectedLevel, levelConfig.questionCount);
+    isCATMode = isKwaisCATLevel(selectedLevel);
+    catSession = null;
+
+    if (isCATMode) {
+      catSession = createKwaisCATSession(levelConfig);
+      const first = catSession.getNextQuestion();
+      questions = first ? [first] : [];
+    } else {
+      questions = buildIqTest(selectedLevel, levelConfig.questionCount);
+    }
 
     state = {
       currentIndex: 0,
@@ -345,6 +405,8 @@
       timerId: null,
       startTime: null
     };
+
+    questionStartTime = Date.now();
 
     els.testLevelChip.textContent = levelConfig.subLabel
       ? `${levelConfig.icon} ${levelConfig.label} · ${levelConfig.subLabel}`
@@ -366,6 +428,13 @@
   });
 
   els.btnNext.addEventListener('click', () => {
+    if (state.answers[state.currentIndex] === null) return;
+
+    if (isCATMode) {
+      advanceCAT();
+      return;
+    }
+
     if (state.currentIndex < questions.length - 1) {
       state.currentIndex++;
       renderQuestion();
@@ -378,6 +447,9 @@
     selectedLevel = null;
     levelConfig = null;
     questions = [];
+    catSession = null;
+    isCATMode = false;
+    clearKwaisBankCache();
     els.btnStart.disabled = true;
     els.btnStart.textContent = '테스트 시작';
     els.ageLevels.querySelectorAll('.age-level-card').forEach(card => {
@@ -390,11 +462,11 @@
   els.btnShare.addEventListener('click', async () => {
     const score = els.iqScore.textContent;
     const level = levelConfig ? levelConfig.label : '';
-    const label = levelConfig?.isWechsler ? 'FSIQ' : '추정 IQ';
-    const text = `[${level}] IQ 테스트 결과: ${label} ${score}점. 당신도 도전해 보세요!`;
+    const label = levelConfig?.isWechsler ? '종합 IQ' : '추정 IQ';
+    const text = `[${level}] InsightIQ 결과: ${label} ${score}점. 당신도 도전해 보세요!`;
     try {
       if (navigator.share) {
-        await navigator.share({ title: 'IQ 테스트 결과', text });
+        await navigator.share({ title: 'InsightIQ 결과', text });
       } else {
         await navigator.clipboard.writeText(text);
         els.btnShare.textContent = '복사됨!';

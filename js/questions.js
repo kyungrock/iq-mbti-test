@@ -20,7 +20,7 @@ const CATEGORY_LABELS = {
   '패턴': '패턴 인식', '공간': '공간 지각'
 };
 
-// 성인 간편 모드용 (비웩슬러)
+// 성인 간편 모드용 (CHC)
 const QUESTION_BANK = {
   adult: [
     { category: '수리', domain: 'fluid', text: '2, 4, 8, 16, ? — 다음 수는?', visual: '2, 4, 8, 16, ?', options: ['24', '28', '32', '36'], answer: 2 },

@@ -1,4 +1,4 @@
-// K-WPPSI-IV (유치원) · K-WISC-V (초·중·고) 문항 풀
+// 유치원·초·중·고 InsightIQ 문항 풀
 
 const YOUTH_WECHSLER_POOLS = {
   kindergarten: [
@@ -140,14 +140,9 @@ const YOUTH_WECHSLER_POOLS = {
 
 function buildWechslerTest(levelId) {
   const config = WECHSLER_LEVELS[levelId];
-  let pool;
+  if (levelId === 'insightiq') return [];
 
-  if (levelId === 'kwais') {
-    pool = KWAIS_QUESTION_POOL;
-  } else {
-    pool = YOUTH_WECHSLER_POOLS[levelId];
-  }
-
+  const pool = YOUTH_WECHSLER_POOLS[levelId];
   if (!pool || !config) return [];
 
   const indices = ['VCI', 'PRI', 'WMI', 'PSI'];
@@ -162,6 +157,8 @@ function buildWechslerTest(levelId) {
 }
 
 function getWechslerPoolSize(levelId) {
-  if (levelId === 'kwais') return KWAIS_QUESTION_POOL.length;
+  if (levelId === 'insightiq') {
+    return getKwaisQuestionBank().count;
+  }
   return (YOUTH_WECHSLER_POOLS[levelId] || []).length;
 }
