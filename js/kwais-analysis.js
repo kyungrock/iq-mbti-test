@@ -1,15 +1,18 @@
-function ratioToIndexScore(ratio) {
-  const z = (ratio - 0.62) / 0.17;
+function ratioToIndexScore(ratio, config) {
+  const mean = config?.normMean ?? 0.62;
+  const sd = config?.normSd ?? 0.17;
+  const z = (ratio - mean) / sd;
   return Math.max(55, Math.min(145, Math.round(100 + 15 * z)));
 }
 
-function getKwaisClassification(score) {
-  return KWAIS_CLASSIFICATIONS.find(c => score >= c.min) || KWAIS_CLASSIFICATIONS[KWAIS_CLASSIFICATIONS.length - 1];
+function getWechslerClassification(score) {
+  return WECHSLER_CLASSIFICATIONS.find(c => score >= c.min) ||
+    WECHSLER_CLASSIFICATIONS[WECHSLER_CLASSIFICATIONS.length - 1];
 }
 
 function getIndexStats(questions, answers) {
   const stats = {};
-  Object.keys(KWAIS_INDICES).forEach(k => {
+  Object.keys(WECHSLER_INDICES).forEach(k => {
     stats[k] = { correct: 0, total: 0, subtests: {} };
   });
 
@@ -29,7 +32,7 @@ function getIndexStats(questions, answers) {
   return stats;
 }
 
-function buildKwaisReport(questions, answers, elapsed, config) {
+function buildWechslerReport(questions, answers, elapsed, config) {
   const correct = answers.filter((a, i) => a === questions[i].answer).length;
   const total = questions.length;
   const indexStats = getIndexStats(questions, answers);
@@ -38,12 +41,12 @@ function buildKwaisReport(questions, answers, elapsed, config) {
   Object.entries(indexStats).forEach(([key, s]) => {
     const ratio = s.total > 0 ? s.correct / s.total : 0;
     indexScores[key] = {
-      score: ratioToIndexScore(ratio),
+      score: ratioToIndexScore(ratio, config),
       correct: s.correct,
       total: s.total,
       ratio,
       subtests: s.subtests,
-      info: KWAIS_INDICES[key]
+      info: WECHSLER_INDICES[key]
     };
   });
 
@@ -51,16 +54,18 @@ function buildKwaisReport(questions, answers, elapsed, config) {
     (indexScores.VCI.score + indexScores.PRI.score + indexScores.WMI.score + indexScores.PSI.score) / 4
   );
   const gai = Math.round((indexScores.VCI.score + indexScores.PRI.score) / 2);
-  const classification = getKwaisClassification(fsiq);
+  const classification = getWechslerClassification(fsiq);
   const percentile = Math.round(normCdf((fsiq - 100) / 15) * 100);
 
   const subtestStats = getSubtestStats(questions, answers);
-  const { strengths, weaknesses } = getKwaisStrengthsWeaknesses(indexScores);
+  const { strengths, weaknesses } = getWechslerStrengthsWeaknesses(indexScores);
   const speedLevel = getSpeedScore(elapsed, config.timeLimit, correct, total);
+  const recKey = config.recKey || 'adult';
   const performanceTier = fsiq >= 115 ? 'high' : fsiq >= 90 ? 'mid' : 'low';
+  const recs = AGE_RECOMMENDATIONS[recKey] || AGE_RECOMMENDATIONS.adult;
 
   return {
-    isKwais: true,
+    isWechsler: true,
     fsiq,
     gai,
     iq: fsiq,
@@ -74,15 +79,20 @@ function buildKwaisReport(questions, answers, elapsed, config) {
     strengths,
     weaknesses,
     speedLevel,
-    recommendations: AGE_RECOMMENDATIONS.adult[performanceTier],
-    summary: buildKwaisSummary(fsiq, gai, classification, correct, total, percentile),
+    recommendations: recs[performanceTier],
+    summary: buildWechslerSummary(config, fsiq, gai, classification, correct, total, percentile),
     indexAnalysis: buildIndexAnalysis(indexScores),
     subtestAnalysis: buildSubtestAnalysis(subtestStats),
-    strengthText: buildKwaisStrengthText(strengths),
-    weaknessText: buildKwaisWeaknessText(weaknesses),
-    comparisonText: buildKwaisComparison(fsiq, gai, percentile),
-    cognitiveProfile: buildKwaisProfile(indexScores, speedLevel)
+    strengthText: buildWechslerStrengthText(strengths),
+    weaknessText: buildWechslerWeaknessText(weaknesses),
+    comparisonText: buildWechslerComparison(config, fsiq, gai, percentile),
+    cognitiveProfile: buildWechslerProfile(indexScores, speedLevel)
   };
+}
+
+// 하위 호환
+function buildKwaisReport(questions, answers, elapsed, config) {
+  return buildWechslerReport(questions, answers, elapsed, config);
 }
 
 function getSubtestStats(questions, answers) {
@@ -96,11 +106,9 @@ function getSubtestStats(questions, answers) {
   return stats;
 }
 
-function getKwaisStrengthsWeaknesses(indexScores) {
+function getWechslerStrengthsWeaknesses(indexScores) {
   const entries = Object.entries(indexScores).map(([key, s]) => ({
-    key,
-    score: s.score,
-    name: s.info.name
+    key, score: s.score, name: s.info.name
   }));
   entries.sort((a, b) => b.score - a.score);
   return {
@@ -109,12 +117,14 @@ function getKwaisStrengthsWeaknesses(indexScores) {
   };
 }
 
-function buildKwaisSummary(fsiq, gai, cls, correct, total, percentile) {
-  return `K-WAIS-IV 구조 기반 검사 결과, <strong>FSIQ(전체지능지수) ${fsiq}</strong>점으로 ` +
-    `「${cls.label}」에 해당합니다(백분위 ${percentile}%). ` +
+function buildWechslerSummary(config, fsiq, gai, cls, correct, total, percentile) {
+  const exam = config.examName;
+  const sub = config.subLabel ? ` (${config.subLabel} · ${config.ageRange})` : ` (${config.ageRange})`;
+  return `<strong>${exam}</strong>${sub} 구조 기반 검사 결과, ` +
+    `<strong>FSIQ(전체지능지수) ${fsiq}</strong>점으로 「${cls.label}」에 해당합니다(백분위 ${percentile}%). ` +
     `GAI(일반능력지수, VCI+PRI)는 <strong>${gai}</strong>점입니다. ` +
     `총 ${total}문항 중 ${correct}문항 정답. ` +
-    `※ 공인 K-WAIS-IV 실시·채점과는 다르며 참고용입니다.`;
+    `※ 공인 ${exam} 실시·채점과는 다르며 참고용입니다.`;
 }
 
 function buildIndexAnalysis(indexScores) {
@@ -133,7 +143,7 @@ function buildSubtestAnalysis(subtestStats) {
   return Object.entries(subtestStats)
     .map(([name, s]) => ({
       name,
-      label: KWAIS_SUBTEST_LABELS[name] || name,
+      label: WECHSLER_SUBTEST_LABELS[name] || name,
       index: s.index,
       correct: s.correct,
       total: s.total,
@@ -142,32 +152,35 @@ function buildSubtestAnalysis(subtestStats) {
     .sort((a, b) => b.pct - a.pct);
 }
 
-function buildKwaisStrengthText(strengths) {
+function buildWechslerStrengthText(strengths) {
   if (!strengths.length) return '4개 지표가 고르게 나타났습니다.';
   return strengths.map(s => `${s.name} 지표 (${s.score}점)`).join(', ') + '에서 강점이 보입니다.';
 }
 
-function buildKwaisWeaknessText(weaknesses) {
+function buildWechslerWeaknessText(weaknesses) {
   if (!weaknesses.length) return '특별히 취약한 지표가 관찰되지 않았습니다.';
   return weaknesses.map(s => `${s.name} 지표 (${s.score}점)`).join(', ') + ' 영역 보완을 권장합니다.';
 }
 
-function buildKwaisComparison(fsiq, gai, percentile) {
+function buildWechslerComparison(config, fsiq, gai, percentile) {
+  const exam = config.examName;
+  const age = config.ageRange;
   const gaiDiff = gai - fsiq;
   let gaiNote = '';
-  if (gaiDiff >= 5) gaiNote = ' GAI가 FSIQ보다 높아, 작업기억·처리속도 요인의 영향이 상대적으로 낮을 수 있습니다.';
+  if (gaiDiff >= 5) gaiNote = ' GAI가 FSIQ보다 높아, 작업기억·처리속도 영향이 상대적으로 낮을 수 있습니다.';
   else if (gaiDiff <= -5) gaiNote = ' FSIQ가 GAI보다 높아, 작업기억·처리속도에서 추가 점수를 얻었을 수 있습니다.';
 
-  if (fsiq >= 120) return `K-WAIS-IV 연령 규준(16~69세) 기준 상위권입니다.${gaiNote}`;
-  if (fsiq >= 90) return `K-WAIS-IV 연령 규준 기준 평균 범위에 해당합니다.${gaiNote}`;
-  return `K-WAIS-IV 연령 규준 기준 보완이 필요한 영역이 있을 수 있습니다. 전문가 실시를 권장합니다.${gaiNote}`;
+  if (fsiq >= 120) return `${exam} 연령 규준(${age}) 기준 상위권입니다.${gaiNote}`;
+  if (fsiq >= 90) return `${exam} 연령 규준(${age}) 기준 평균 범위에 해당합니다.${gaiNote}`;
+  return `${exam} 연령 규준(${age}) 기준 보완이 필요한 영역이 있을 수 있습니다. 전문가 실시를 권장합니다.${gaiNote}`;
 }
 
-function buildKwaisProfile(indexScores, speedLevel) {
-  const parts = Object.entries(indexScores).map(([key, s]) => {
-    const pct = Math.round(s.ratio * 100);
-    return `<strong>${s.info.fullName}</strong> (${s.correct}/${s.total}, 지표 ${s.score}점): ${s.info.desc}`;
-  });
+function buildWechslerProfile(indexScores, speedLevel) {
+  const parts = Object.entries(indexScores).map(([, s]) =>
+    `<strong>${s.info.fullName}</strong> (${s.correct}/${s.total}, 지표 ${s.score}점): ${s.info.desc}`
+  );
   parts.push(`<strong>처리속도 수행</strong>: ${DOMAIN_DESCRIPTIONS.speed[speedLevel]}`);
   return parts;
 }
+
+function getKwaisClassification(score) { return getWechslerClassification(score); }

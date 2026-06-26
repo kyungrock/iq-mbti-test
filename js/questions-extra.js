@@ -124,8 +124,9 @@ function getFullQuestionPool(levelId) {
 }
 
 function buildIqTest(levelId, count) {
-  if (levelId === 'kwais' && typeof buildKwaisTest === 'function') {
-    return buildKwaisTest();
+  const config = getAllAgeLevels()[levelId];
+  if (config?.isWechsler && typeof buildWechslerTest === 'function') {
+    return buildWechslerTest(levelId);
   }
   const pool = getFullQuestionPool(levelId);
   return prepareTestQuestions(pool, count, 'category');

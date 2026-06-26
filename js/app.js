@@ -69,16 +69,19 @@
     Object.values(levels).forEach(level => {
       const card = document.createElement('button');
       card.type = 'button';
-      card.className = 'age-level-card' + (level.isKwais ? ' kwais-card' : '');
+      card.className = 'age-level-card' + (level.isWechsler ? ' kwais-card' : '');
       card.dataset.level = level.id;
       card.setAttribute('role', 'radio');
       card.setAttribute('aria-checked', 'false');
-      const meta = level.isKwais
-        ? `${level.questionCount}문항 · ${level.timeLimit}분 · 4지표`
+      const displayLabel = level.subLabel
+        ? `${level.label} · ${level.subLabel}`
+        : level.label;
+      const meta = level.isWechsler
+        ? `${level.questionCount}문항 · ${level.timeLimit}분 · FSIQ`
         : `${level.questionCount}문항 · ${level.timeLimit}분`;
       card.innerHTML = `
         <span class="age-level-icon">${level.icon}</span>
-        <span class="age-level-label">${level.label}</span>
+        <span class="age-level-label">${displayLabel}</span>
         <span class="age-level-age">${level.ageRange}</span>
         <span class="age-level-desc">${level.description}</span>
         <span class="age-level-meta">${meta}</span>
@@ -100,7 +103,9 @@
     });
 
     els.btnStart.disabled = false;
-    els.btnStart.textContent = levelConfig.isKwais ? 'K-WAIS-IV 검사 시작' : '테스트 시작';
+    els.btnStart.textContent = levelConfig.isWechsler
+      ? `${levelConfig.examName} 검사 시작`
+      : '테스트 시작';
   }
 
   function showScreen(name) {
@@ -137,7 +142,7 @@
 
   function getQuestionBadge(q) {
     if (q.index && q.subtest) {
-      const idxName = KWAIS_INDICES[q.index]?.name || q.index;
+      const idxName = WECHSLER_INDICES[q.index]?.name || q.index;
       return `${q.subtest} · ${idxName}`;
     }
     return CATEGORY_LABELS[q.category] || q.category;
@@ -150,7 +155,7 @@
     els.progressFill.style.width = `${progress}%`;
     els.progressText.textContent = `${state.currentIndex + 1} / ${questions.length}`;
     els.categoryBadge.textContent = getQuestionBadge(q);
-    if (levelConfig.isKwais) els.categoryBadge.classList.add('kwais-badge');
+    if (levelConfig.isWechsler) els.categoryBadge.classList.add('kwais-badge');
     else els.categoryBadge.classList.remove('kwais-badge');
     els.questionText.textContent = q.text;
 
@@ -235,15 +240,17 @@
     );
   }
 
-  function showKwaisResults(report) {
-    els.resultIqLabel.innerHTML = 'FSIQ <span class="result-norm">(전체지능지수 · K-WAIS-IV)</span>';
+  function showWechslerResults(report, config) {
+    const exam = config.examName;
+    els.resultIqLabel.innerHTML = `FSIQ <span class="result-norm">(전체지능지수 · ${exam})</span>`;
     els.gaiScore.hidden = false;
     els.gaiValue.textContent = report.gai;
     els.kwaisIndexSection.hidden = false;
     els.kwaisSubtestSection.hidden = false;
     els.categorySection.hidden = true;
-    els.profileSectionTitle.textContent = 'K-WAIS-IV 지표 프로필';
-    els.categorySectionTitle.textContent = '세부 영역별 성적';
+    els.profileSectionTitle.textContent = `${exam} 4지표 프로필`;
+    document.querySelector('#kwais-index-section h3').textContent = `${exam} 4지표 점수`;
+    document.querySelector('#kwais-subtest-section h3').textContent = `${exam} 소검사별 성적`;
 
     els.iqScore.textContent = report.fsiq;
     els.iqLevel.textContent = report.classification.label;
@@ -285,19 +292,22 @@
 
   function showResults() {
     const elapsed = Math.round((Date.now() - state.startTime) / 1000);
-    const isKwais = levelConfig.isKwais;
-    const report = isKwais
-      ? buildKwaisReport(questions, state.answers, elapsed, levelConfig)
+    const isWechsler = levelConfig.isWechsler;
+    const report = isWechsler
+      ? buildWechslerReport(questions, state.answers, elapsed, levelConfig)
       : buildProfessionalReport(selectedLevel, questions, state.answers, elapsed, levelConfig);
 
-    els.resultAgeBadge.innerHTML = `${levelConfig.icon} ${levelConfig.label} · ${levelConfig.ageRange}`;
+    const badgeLabel = levelConfig.subLabel
+      ? `${levelConfig.label} · ${levelConfig.subLabel}`
+      : levelConfig.label;
+    els.resultAgeBadge.innerHTML = `${levelConfig.icon} ${badgeLabel} · ${levelConfig.ageRange}`;
     els.statCorrect.textContent = report.correct;
     els.statTotal.textContent = report.total;
     els.statTime.textContent = formatTime(elapsed);
     els.statPercentile.textContent = `${report.percentile}%`;
     els.resultSummary.innerHTML = report.summary;
 
-    if (isKwais) showKwaisResults(report);
+    if (isWechsler) showWechslerResults(report, levelConfig);
     else showStandardResults(report);
 
     els.cognitiveProfile.innerHTML = report.cognitiveProfile
@@ -336,7 +346,9 @@
       startTime: null
     };
 
-    els.testLevelChip.textContent = `${levelConfig.icon} ${levelConfig.label}`;
+    els.testLevelChip.textContent = levelConfig.subLabel
+      ? `${levelConfig.icon} ${levelConfig.label} · ${levelConfig.subLabel}`
+      : `${levelConfig.icon} ${levelConfig.label}`;
     showScreen('test');
     startTimer();
     renderQuestion();
@@ -378,7 +390,7 @@
   els.btnShare.addEventListener('click', async () => {
     const score = els.iqScore.textContent;
     const level = levelConfig ? levelConfig.label : '';
-    const label = levelConfig?.isKwais ? 'FSIQ' : '추정 IQ';
+    const label = levelConfig?.isWechsler ? 'FSIQ' : '추정 IQ';
     const text = `[${level}] IQ 테스트 결과: ${label} ${score}점. 당신도 도전해 보세요!`;
     try {
       if (navigator.share) {

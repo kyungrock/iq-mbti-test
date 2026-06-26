@@ -71,21 +71,3 @@ const KWAIS_QUESTION_POOL = [
   { index: 'PSI', subtest: '지우기', category: '지우기', text: '숫자 5가 아닌 것의 개수는?', visual: '5 3 5 5 8 5 2', options: ['1', '2', '3', '4'], answer: 2 }
 ];
 
-const KWAIS_PER_INDEX = 8; // 4지표 × 8문항 = 32문항
-
-function buildKwaisTest() {
-  const indices = ['VCI', 'PRI', 'WMI', 'PSI'];
-  let selected = [];
-
-  indices.forEach(idx => {
-    const pool = KWAIS_QUESTION_POOL.filter(q => q.index === idx);
-    const picked = pickFromPool(pool, KWAIS_PER_INDEX);
-    selected = selected.concat(picked);
-  });
-
-  return shuffleArray(selected).map(shuffleQuestionOptions);
-}
-
-function getKwaisPoolSize() {
-  return KWAIS_QUESTION_POOL.length;
-}

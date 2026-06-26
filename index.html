@@ -28,24 +28,24 @@
     <!-- 시작 화면 -->
     <section id="screen-start" class="screen active">
       <div class="card hero-card">
-        <div class="hero-badge">연령별 맞춤 · K-WAIS-IV · CHC 분석</div>
+        <div class="hero-badge">K-WPPSI · K-WISC · K-WAIS · CHC 분석</div>
         <h1>연령에 맞는<br>IQ 테스트</h1>
         <p class="hero-desc">
-          유치원부터 성인까지 <strong>5단계 연령 규준</strong> + <strong>K-WAIS-IV</strong>(16~69세)를 제공합니다.
-          K-WAIS-IV는 언어이해·지각추론·작업기억·처리속도 4지표와 FSIQ/GAI를 산출합니다.
+          <strong>유치원(K-WPPSI-IV)</strong>부터 <strong>고등(K-WISC-V)</strong>, <strong>성인(K-WAIS-IV)</strong>까지
+          웩슬러 4지표 구조로 FSIQ·GAI를 산출합니다. 성인 간편(CHC) 모드도 선택할 수 있습니다.
         </p>
         <ul class="feature-list">
           <li>
-            <span class="feature-icon">📋</span>
-            <span>K-WAIS-IV: 10핵심 소검사 · 32문항</span>
+            <span class="feature-icon">🌱</span>
+            <span>유치원~고등: K-WPPSI / K-WISC · 4지표 · 소검사별 분석</span>
           </li>
           <li>
-            <span class="feature-icon">📊</span>
-            <span>FSIQ · GAI · 4지표 점수 (평균 100, SD 15)</span>
+            <span class="feature-icon">📋</span>
+            <span>성인 K-WAIS-IV: 32문항 · FSIQ · GAI (평균 100, SD 15)</span>
           </li>
           <li>
             <span class="feature-icon">🔬</span>
-            <span>매 회 랜덤 출제 · 소검사별 분석</span>
+            <span>매 회 랜덤 출제 · 연령별 맞춤 해석</span>
           </li>
         </ul>
 
@@ -56,8 +56,8 @@
 
         <button id="btn-start" class="btn btn-primary btn-lg" disabled>테스트 시작</button>
         <p class="disclaimer">
-          ※ 본 테스트는 오락 및 자기 이해 목적이며, K-WAIS-IV·K-WISC 등 공인 웩슬러 검사를 대체하지 않습니다.
-          K-WAIS-IV 정식 실시는 임상심리 전문가에게 의뢰해 주세요.
+          ※ 본 테스트는 오락 및 자기 이해 목적이며, K-WPPSI·K-WISC·K-WAIS 등 공인 웩슬러 검사를 대체하지 않습니다.
+          정식 실시는 임상심리 전문가에게 의뢰해 주세요.
         </p>
       </div>
     </section>
@@ -183,10 +183,11 @@
   </footer>
 
   <script src="js/shuffle.js"></script>
+  <script src="js/wechsler-levels.js"></script>
   <script src="js/questions.js"></script>
   <script src="js/questions-extra.js"></script>
-  <script src="js/kwais-config.js"></script>
   <script src="js/kwais-questions.js"></script>
+  <script src="js/wechsler-questions-youth.js"></script>
   <script src="js/analysis.js"></script>
   <script src="js/kwais-analysis.js"></script>
   <script src="js/app.js"></script>
