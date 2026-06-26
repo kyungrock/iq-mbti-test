@@ -195,8 +195,8 @@
     });
 
     els.btnPrev.disabled = isCATMode || state.currentIndex === 0;
-    const isLast = !isCATMode && state.currentIndex === questions.length - 1;
-    els.btnNext.textContent = isLast ? '결과 보기' : '다음';
+    const isLastCat = isCATMode && catSession && catSession.itemCount >= catSession.maxItems;
+    els.btnNext.textContent = (isLast || isLastCat) ? '결과 보기' : '다음';
   }
 
   function advanceCAT() {
@@ -294,7 +294,7 @@
     document.querySelector('#iq-index-section h3').textContent = report.isCAT
       ? 'InsightIQ 5영역 점수'
       : 'InsightIQ 4영역 점수';
-    document.querySelector('#iq-detail-section h3').textContent = `${exam} 세부 항목별 성적`;
+    document.querySelector('#iq-detail-section h3').textContent = 'InsightIQ 세부 항목별 성적';
 
     els.iqScore.textContent = report.compositeIQ;
     els.iqLevel.textContent = report.classification.label;
